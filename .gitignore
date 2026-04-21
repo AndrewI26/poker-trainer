@@ -1,0 +1,16 @@
+node_modules/
+dist/
+apps/web/dist/
+.expo/
+.env
+.env.local
+*.pyc
+__pycache__/
+.venv/
+.python-version
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.DS_Store
+apps/api/.venv/

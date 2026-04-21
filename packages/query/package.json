@@ -1,0 +1,15 @@
+{
+  "name": "@poker-trainer/query",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.62.0"
+  },
+  "dependencies": {
+    "@poker-trainer/api-client": "file:../api-client"
+  }
+}
