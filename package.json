@@ -16,7 +16,8 @@
     "db:logs": "docker compose logs -f db",
     "db:up": "docker compose up -d db",
     "lint": "bun run --filter @poker-trainer/web lint && bun run --filter @poker-trainer/mobile lint",
-    "test": "echo \"No workspace test scripts yet; add tests under apps/ or packages/.\""
+    "test": "cd apps/api && uv run pytest",
+    "test:api": "cd apps/api && uv run pytest"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

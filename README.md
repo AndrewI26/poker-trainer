@@ -61,8 +61,13 @@ cp .env.example .env
 | Start Postgres | `bun run db:up` |
 | OpenAPI → TS client | `bun run codegen` |
 | Lint (web + mobile) | `bun run lint` |
+| API tests (pytest) | `bun run test` or `cd apps/api && uv run pytest` |
+
+**Note:** `bun test` (no `run`) is Bun’s **JavaScript** test runner. This repo includes [`backend.test.ts`](backend.test.ts) so `bun test` at the root still runs **pytest** against `apps/api`. You can also use `bun run test`, which calls pytest directly without that wrapper.
 
 `codegen` runs `bun scripts/codegen.ts` and invokes the local `openapi-typescript` CLI (no `npx`).
+
+API tests use **FastAPI `TestClient`** (Starlette) with an in-memory **SQLite** database and dependency overrides—no Docker Postgres required.
 
 ### Database (PostgreSQL in Docker)
 
