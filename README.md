@@ -60,7 +60,9 @@ cp .env.example .env
 | Postgres logs | `bun run db:logs` |
 | Start Postgres | `bun run db:up` |
 | OpenAPI → TS client | `bun run codegen` |
-| Lint (web + mobile) | `bun run lint` |
+| Lint | `bun run lint` |
+| Format | `bun run format` |
+| Lint + format | `bun run check` |
 | API tests (pytest) | `bun run test` or `cd apps/api && uv run pytest` |
 
 **Note:** `bun test` (no `run`) is Bun’s **JavaScript** test runner. This repo includes [`backend.test.ts`](backend.test.ts) so `bun test` at the root still runs **pytest** against `apps/api`. You can also use `bun run test`, which calls pytest directly without that wrapper.
@@ -104,6 +106,20 @@ Writes `packages/api-client/src/openapi.json` and `packages/api-client/src/schem
 - **`docker compose up --build api`** — [`apps/api/Dockerfile.dev`](apps/api/Dockerfile.dev): migrations + **uvicorn --reload**.
 
 **Production:** build [`apps/api/Dockerfile`](apps/api/Dockerfile); set `DATABASE_URL` to production Postgres.
+
+## Code quality (Biome)
+
+This project uses [Biome](https://biomejs.dev) for both formatting and linting — no separate ESLint or Prettier needed.
+
+**Editor setup (recommended):** install the [Biome VS Code extension](https://marketplace.visualstudio.com/items?itemName=biomejs.biome) (or the JetBrains plugin) and enable format-on-save. Biome will be picked up automatically from `node_modules/.bin/biome` via the root [`biome.json`](biome.json).
+
+**CLI commands:**
+
+```bash
+bun run check      # lint + format check + auto-fix (recommended)
+bun run lint       # lint only
+bun run format     # format only (writes files)
+```
 
 ## Product direction
 

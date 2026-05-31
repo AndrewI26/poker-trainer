@@ -1,0 +1,53 @@
+import { View, Text } from "react-native";
+import theme from "../../theme/theme";
+import type { useTheme } from "../../theme/ThemeContext";
+
+type T = ReturnType<typeof useTheme>["t"];
+
+export function StatRow({
+	t,
+	label,
+	value,
+	trend,
+}: {
+	t: T;
+	label: string;
+	value: string;
+	trend?: "up" | "down";
+}) {
+	return (
+		<View
+			style={{
+				flexDirection: "row",
+				justifyContent: "space-between",
+				alignItems: "center",
+				paddingVertical: theme.spacing.sm,
+			}}
+		>
+			<Text
+				style={{
+					fontFamily: theme.fontFamily.regular,
+					fontSize: theme.fontSize.sm,
+					color: t.assets.subtext,
+				}}
+			>
+				{label}
+			</Text>
+			<Text
+				style={{
+					fontFamily: theme.fontFamily.bold,
+					fontSize: theme.fontSize.body,
+					color:
+						trend === "up"
+							? t.sentiment.positive
+							: trend === "down"
+								? t.sentiment.negative
+								: t.assets.text,
+				}}
+			>
+				{trend === "up" ? "↑ " : trend === "down" ? "↓ " : ""}
+				{value}
+			</Text>
+		</View>
+	);
+}
