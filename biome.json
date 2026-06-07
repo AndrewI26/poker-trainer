@@ -7,11 +7,11 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**"]
+		"includes": ["**", "!**/dist/**", "!**/node_modules/**", "!**/.expo/**"]
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "space"
 	},
 	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {

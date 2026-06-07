@@ -16,7 +16,7 @@
     "db:logs": "docker compose logs -f db",
     "db:up": "docker compose up -d db",
     "lint": "biome lint apps/",
-    "format": "biome format --write apps/",
+    "format": "biome check --write apps/",
     "check": "biome check --write apps/",
     "test": "cd apps/api && uv run pytest",
     "test:api": "cd apps/api && uv run pytest"
