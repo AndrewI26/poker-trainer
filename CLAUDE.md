@@ -4,7 +4,7 @@
 
 - **Monorepo**: Bun workspaces (`apps/*`, `packages/*`)
 - **API**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (Docker), managed by `uv`
-- **Web**: Vite + React + React Router v7 + TanStack Query
+- **Web**: Vite + React + React Router v7
 - **Mobile**: Expo (React Native) + Expo Router
 - **SDK**: `packages/api-sdk` — fully generated from OpenAPI spec via hey-api (`bun run codegen`). Never hand-edit files in `src/generated/`.
 - **Linting/Formatting**: Biome (TS/JS), Ruff (Python)
