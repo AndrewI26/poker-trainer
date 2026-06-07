@@ -9,10 +9,7 @@ __pycache__/
 .venv/
 .python-version
 .pytest_cache/
-.coverage
-htmlcov/
 *.egg-info/
 .DS_Store
 apps/api/.venv/
 .claude/
-packages/api-sdk/src/generated/
