@@ -2,7 +2,11 @@ export { createDeck, dealCards, shuffleDeck } from "./deck";
 export { evaluateDecision } from "./evaluator";
 export { classifyHand, isPocketPair, isSuited, rankToNumber } from "./hands";
 export { SeededRng } from "./rng";
-export { generateScenario } from "./scenario";
+export {
+  ACTION_ORDER,
+  ACTION_ORDER_BY_SIZE,
+  generateScenario,
+} from "./scenario";
 export type {
   ActionType,
   BlindStructure,

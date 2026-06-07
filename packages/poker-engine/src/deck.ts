@@ -1,8 +1,13 @@
 import type { SeededRng } from "./rng";
 import type { Card, Rank, Suit } from "./types";
 
-const SUITS: Suit[] = ["spades", "hearts", "diamonds", "clubs"];
-const RANKS: Rank[] = [
+const SUITS = Object.freeze([
+  "spades",
+  "hearts",
+  "diamonds",
+  "clubs",
+] as const satisfies readonly Suit[]);
+const RANKS = Object.freeze([
   "2",
   "3",
   "4",
@@ -16,7 +21,7 @@ const RANKS: Rank[] = [
   "Q",
   "K",
   "A",
-];
+] as const satisfies readonly Rank[]);
 
 export function createDeck(): Card[] {
   const deck: Card[] = [];

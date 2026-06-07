@@ -23,8 +23,9 @@
     "format": "bun run format:ts && bun run format:api",
     "format:ts": "biome check --write apps/web apps/mobile packages/",
     "format:api": "cd apps/api && uv run ruff format .",
+    "typecheck": "tsc -p apps/web/tsconfig.json --noEmit && tsc -p apps/mobile/tsconfig.json --noEmit && tsc -p packages/poker-engine/tsconfig.json --noEmit",
     "check": "bun run check:ts && bun run check:api",
-    "check:ts": "biome check --write apps/web apps/mobile packages/",
+    "check:ts": "bun run typecheck && biome check --write apps/web apps/mobile packages/",
     "check:api": "cd apps/api && uv run ruff check . && uv run ruff format --check .",
     "test": "cd apps/api && uv run pytest",
     "test:api": "cd apps/api && uv run pytest"

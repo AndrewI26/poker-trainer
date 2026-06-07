@@ -12,19 +12,37 @@ import type {
   TableSize,
 } from "./types";
 
-const POSITIONS_BY_SIZE: Record<TableSize, Position[]> = {
-  2: ["SB", "BB"],
-  3: ["BTN", "SB", "BB"],
-  4: ["CO", "BTN", "SB", "BB"],
-  5: ["HJ", "CO", "BTN", "SB", "BB"],
-  6: ["LJ", "HJ", "CO", "BTN", "SB", "BB"],
-  7: ["UTG", "HJ", "CO", "BTN", "SB", "BB", "LJ"],
-  8: ["UTG", "UTG+1", "HJ", "CO", "BTN", "SB", "BB", "LJ"],
-  9: ["UTG", "UTG+1", "UTG+2", "LJ", "HJ", "CO", "BTN", "SB", "BB"],
-};
+export const ACTION_ORDER_BY_SIZE = Object.freeze({
+  2: Object.freeze(["SB", "BB"] as const),
+  3: Object.freeze(["BTN", "SB", "BB"] as const),
+  4: Object.freeze(["CO", "BTN", "SB", "BB"] as const),
+  5: Object.freeze(["HJ", "CO", "BTN", "SB", "BB"] as const),
+  6: Object.freeze(["LJ", "HJ", "CO", "BTN", "SB", "BB"] as const),
+  7: Object.freeze(["UTG", "LJ", "HJ", "CO", "BTN", "SB", "BB"] as const),
+  8: Object.freeze([
+    "UTG",
+    "UTG+1",
+    "LJ",
+    "HJ",
+    "CO",
+    "BTN",
+    "SB",
+    "BB",
+  ] as const),
+  9: Object.freeze([
+    "UTG",
+    "UTG+1",
+    "UTG+2",
+    "LJ",
+    "HJ",
+    "CO",
+    "BTN",
+    "SB",
+    "BB",
+  ] as const),
+} satisfies Record<TableSize, readonly Position[]>);
 
-// Preflop action order (UTG first, BB last)
-const ACTION_ORDER: Position[] = [
+export const ACTION_ORDER = Object.freeze([
   "UTG",
   "UTG+1",
   "UTG+2",
@@ -34,10 +52,10 @@ const ACTION_ORDER: Position[] = [
   "BTN",
   "SB",
   "BB",
-];
+] as const satisfies readonly Position[]);
 
-function actionOrder(positions: Position[]): Position[] {
-  return ACTION_ORDER.filter((p) => positions.includes(p));
+function actionOrder(tableSize: TableSize): readonly Position[] {
+  return ACTION_ORDER_BY_SIZE[tableSize];
 }
 
 function randomStackBB(rng: SeededRng): number {
@@ -48,12 +66,12 @@ function randomStackBB(rng: SeededRng): number {
 }
 
 function simulateActionsBefore(
-  positions: Position[],
+  tableSize: TableSize,
   heroPosition: Position,
   stacks: Map<Position, number>,
   rng: SeededRng,
 ): PreflopAction[] {
-  const order = actionOrder(positions);
+  const order = actionOrder(tableSize);
   const heroIndex = order.indexOf(heroPosition);
   const actingBefore = order.slice(0, heroIndex);
 
@@ -145,9 +163,9 @@ export function generateScenario(
     options?.seed ?? (Date.now() ^ Math.floor(Math.random() * 2 ** 32)) >>> 0;
   const rng = new SeededRng(seed);
 
-  const tableSize: TableSize = options?.tableSize ?? (rng.next() < 0.5 ? 6 : 9);
+  const tableSize: TableSize = options?.tableSize ?? 6;
 
-  const positions = POSITIONS_BY_SIZE[tableSize];
+  const positions = ACTION_ORDER_BY_SIZE[tableSize];
   const heroPosition: Position =
     options?.heroPosition ?? rng.nextFrom(positions);
 
@@ -168,7 +186,7 @@ export function generateScenario(
   };
 
   const actionsBefore = simulateActionsBefore(
-    positions,
+    tableSize,
     heroPosition,
     stacks,
     rng,

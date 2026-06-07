@@ -232,7 +232,7 @@ export const light = {
 export const dark = {
   assets: {
     bgPage: neutrals.black,
-    bgCardPrimary: "#171717",
+    bgCardPrimary: "#111111",
     bgCardSecondary: "#0f0f0f",
     bgCard: neutrals.dune,
     bgForeground: neutrals.black,
