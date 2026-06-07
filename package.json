@@ -6,7 +6,7 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"bun run dev:api\" \"bun run dev:web\"",
-    "dev:api": "cd apps/api && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:api": "cd apps/api && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port ${API_PORT:-8000}",
     "db:migrate": "cd apps/api && uv run alembic upgrade head",
     "dev:web": "bun run --filter @poker-trainer/web dev",
     "dev:mobile": "bun run --filter @poker-trainer/mobile start",
