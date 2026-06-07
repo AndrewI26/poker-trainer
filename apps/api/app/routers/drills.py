@@ -12,7 +12,9 @@ router = APIRouter(prefix="/drills", tags=["drills"])
 
 
 @router.get("", response_model=list[DrillRead])
-def list_drills(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) -> list[Drill]:
+def list_drills(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+) -> list[Drill]:
     stmt = select(Drill).offset(skip).limit(limit).order_by(Drill.id)
     return list(db.scalars(stmt))
 
@@ -35,7 +37,9 @@ def get_drill(drill_id: int, db: Session = Depends(get_db)) -> Drill:
 
 
 @router.patch("/{drill_id}", response_model=DrillRead)
-def update_drill(drill_id: int, payload: DrillUpdate, db: Session = Depends(get_db)) -> Drill:
+def update_drill(
+    drill_id: int, payload: DrillUpdate, db: Session = Depends(get_db)
+) -> Drill:
     drill = db.get(Drill, drill_id)
     if drill is None:
         raise HTTPException(status_code=404, detail="Drill not found")

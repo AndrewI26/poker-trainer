@@ -10,7 +10,11 @@ def test_list_drills_empty(client: TestClient) -> None:
 def test_drill_crud_flow(client: TestClient) -> None:
     create = client.post(
         "/api/drills",
-        json={"name": "Open-raise BTN", "description": "Practice BTN opens", "tags": "preflop"},
+        json={
+            "name": "Open-raise BTN",
+            "description": "Practice BTN opens",
+            "tags": "preflop",
+        },
     )
     assert create.status_code == 201
     body = create.json()
