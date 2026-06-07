@@ -1,25 +1,23 @@
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-import { Badge } from "../ui/Badge";
-import { Card } from "../ui/Card";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
 
-type T = Theme;
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
 export function DrillCard({
-  t,
   name,
   difficulty,
   progress,
   total,
 }: {
-  t: T;
   name: string;
   difficulty: Difficulty;
   progress: number;
   total: number;
 }) {
+  const { t } = useTheme();
   const badgeVariant =
     difficulty === "Beginner"
       ? "positive"
@@ -28,7 +26,7 @@ export function DrillCard({
         : "negative";
 
   return (
-    <Card t={t}>
+    <Card>
       <View
         style={{
           flexDirection: "row",
@@ -48,7 +46,7 @@ export function DrillCard({
         >
           {name}
         </Text>
-        <Badge t={t} label={difficulty} variant={badgeVariant} />
+        <Badge label={difficulty} variant={badgeVariant} />
       </View>
       <View
         style={{

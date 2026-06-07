@@ -1,22 +1,19 @@
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-
-type T = Theme;
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export function ListRow({
-  t,
   label,
   sublabel,
   right,
   last,
 }: {
-  t: T;
   label: string;
   sublabel?: string;
   right?: React.ReactNode;
   last?: boolean;
 }) {
+  const { t } = useTheme();
   return (
     <View
       style={{

@@ -1,17 +1,27 @@
+import { useRouter } from "expo-router";
 import { Text } from "react-native";
-import { DrillCard } from "../../components/features/DrillCard";
-import { ScreenWrapper } from "../../components/layout/ScreenWrapper";
-import { Card, Divider, Label, StatRow } from "../../components/ui";
-import { useTheme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { DrillCard } from "@/components/features/DrillCard";
+import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
+import { Card, Divider, IconCard, Label, StatRow } from "@/components/ui";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export default function TrainScreen() {
   const { t } = useTheme();
+  const router = useRouter();
 
   return (
     <ScreenWrapper>
-      <Card t={t}>
-        <Label t={t}>Today's Progress</Label>
+      <IconCard
+        icon="albums-outline"
+        iconBg={theme.palette.vibrantGreen[800]}
+        iconColor={theme.palette.vibrantGreen[300]}
+        heading="Preflop Trainer"
+        body="Practice preflop decisions and get instant feedback on every hand."
+        onPress={() => router.push("/train/preflop")}
+      />
+      <Card>
+        <Label>Today's Progress</Label>
         <Text
           style={{
             fontSize: theme.fontSize.h5,
@@ -32,29 +42,26 @@ export default function TrainScreen() {
         >
           You've completed 3 drills today. 2 more to hit your daily goal.
         </Text>
-        <Divider t={t} />
-        <StatRow t={t} label="Accuracy" value="74%" trend="up" />
-        <StatRow t={t} label="Streak" value="5 days" trend="up" />
-        <StatRow t={t} label="Avg. Time" value="2m 14s" />
+        <Divider />
+        <StatRow label="Accuracy" value="74%" trend="up" />
+        <StatRow label="Streak" value="5 days" trend="up" />
+        <StatRow label="Avg. Time" value="2m 14s" />
       </Card>
 
-      <Label t={t}>Drills</Label>
+      <Label>Drills</Label>
       <DrillCard
-        t={t}
         name="Preflop Ranges"
         difficulty="Beginner"
         progress={12}
         total={20}
       />
       <DrillCard
-        t={t}
         name="Pot Odds"
         difficulty="Intermediate"
         progress={4}
         total={10}
       />
       <DrillCard
-        t={t}
         name="3-Bet Spots"
         difficulty="Advanced"
         progress={1}

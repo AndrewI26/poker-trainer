@@ -1,20 +1,17 @@
 import { View, type ViewStyle } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-
-type T = Theme;
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export function Card({
-  t,
   children,
   style,
   variant = "primary",
 }: {
-  t: T;
   children: React.ReactNode;
   style?: ViewStyle;
   variant?: "primary" | "secondary";
 }) {
+  const { t } = useTheme();
   return (
     <View
       style={[

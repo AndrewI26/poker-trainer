@@ -1,12 +1,9 @@
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-import { Badge } from "../ui/Badge";
-
-type T = Theme;
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
+import { Badge } from "@/components/ui/Badge";
 
 export function LeaderboardRow({
-  t,
   rank,
   name,
   score,
@@ -15,7 +12,6 @@ export function LeaderboardRow({
   isMe,
   last,
 }: {
-  t: T;
   rank: number;
   name: string;
   score: number;
@@ -24,6 +20,7 @@ export function LeaderboardRow({
   isMe?: boolean;
   last?: boolean;
 }) {
+  const { t } = useTheme();
   const rankColor =
     rank === 1
       ? "#e29c57"
@@ -89,7 +86,6 @@ export function LeaderboardRow({
           {score.toLocaleString()}
         </Text>
         <Badge
-          t={t}
           label={trend === "up" ? "↑" : "↓"}
           variant={trend === "up" ? "positive" : "negative"}
         />

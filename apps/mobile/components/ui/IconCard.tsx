@@ -1,34 +1,37 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-
-type T = Theme;
+import { Pressable, Text, View } from "react-native";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export function IconCard({
-  t,
   icon,
   iconBg,
   iconColor,
   heading,
   body,
+  onPress,
 }: {
-  t: T;
   icon: React.ComponentProps<typeof Ionicons>["name"];
   iconBg: string;
   iconColor: string;
   heading: string;
   body: string;
+  onPress?: () => void;
 }) {
-  return (
+  const { t } = useTheme();
+
+  const content = (pressed: boolean) => (
     <View
       style={{
-        backgroundColor: t.assets.bgCardPrimary,
+        backgroundColor: pressed
+          ? t.assets.bgCardSecondary
+          : t.assets.bgCardPrimary,
         borderRadius: theme.borderRadius.m,
         borderWidth: 1,
-        borderColor: t.assets.border,
+        borderColor: pressed ? t.assets.strokeActive : t.assets.border,
         padding: theme.spacing.md,
         marginBottom: theme.spacing.sm,
+        opacity: pressed ? 0.85 : 1,
       }}
     >
       <View
@@ -64,6 +67,24 @@ export function IconCard({
       >
         {body}
       </Text>
+      {onPress && (
+        <Ionicons
+          name="chevron-forward-outline"
+          size={16}
+          color={t.assets.strokeInactive}
+          style={{
+            position: "absolute",
+            top: theme.spacing.md,
+            right: theme.spacing.md,
+          }}
+        />
+      )}
     </View>
+  );
+
+  if (!onPress) return content(false);
+
+  return (
+    <Pressable onPress={onPress}>{({ pressed }) => content(pressed)}</Pressable>
   );
 }

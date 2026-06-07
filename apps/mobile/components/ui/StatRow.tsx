@@ -1,20 +1,17 @@
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-
-type T = Theme;
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export function StatRow({
-  t,
   label,
   value,
   trend,
 }: {
-  t: T;
   label: string;
   value: string;
   trend?: "up" | "down";
 }) {
+  const { t } = useTheme();
   return (
     <View
       style={{

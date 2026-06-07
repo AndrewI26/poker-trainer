@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import { ProfileHeader } from "../../components/features/ProfileHeader";
-import { ScreenWrapper } from "../../components/layout/ScreenWrapper";
-import { Button, Card, Label } from "../../components/ui";
-import { useTheme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { ProfileHeader } from "@/components/features/ProfileHeader";
+import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
+import { Button, Card, Label } from "@/components/ui";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export default function ProfileScreen() {
   const { t } = useTheme();
@@ -12,7 +12,6 @@ export default function ProfileScreen() {
   return (
     <ScreenWrapper>
       <ProfileHeader
-        t={t}
         name="You"
         memberSince="2024"
         rank="#4"
@@ -20,8 +19,8 @@ export default function ProfileScreen() {
         winRate="68%"
       />
 
-      <Label t={t}>Settings</Label>
-      <Card t={t} style={{ padding: 0, overflow: "hidden" }}>
+      <Label>Settings</Label>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
         {[
           {
             icon: "notifications-outline" as const,
@@ -99,9 +98,9 @@ export default function ProfileScreen() {
         ))}
       </Card>
 
-      <Label t={t}>Danger Zone</Label>
-      <Card t={t}>
-        <Button t={t} label="Log Out" variant="warning" />
+      <Label>Danger Zone</Label>
+      <Card>
+        <Button label="Log Out" variant="warning" />
       </Card>
     </ScreenWrapper>
   );

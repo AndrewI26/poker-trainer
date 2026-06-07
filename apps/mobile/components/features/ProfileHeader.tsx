@@ -1,31 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
-import { Badge } from "../ui/Badge";
-import { Card } from "../ui/Card";
-import { Divider } from "../ui/Divider";
-import { StatRow } from "../ui/StatRow";
-
-type T = Theme;
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Divider } from "@/components/ui/Divider";
+import { StatRow } from "@/components/ui/StatRow";
 
 export function ProfileHeader({
-  t,
   name,
   memberSince,
   rank,
   drillsCompleted,
   winRate,
 }: {
-  t: T;
   name: string;
   memberSince: string;
   rank: string;
   drillsCompleted: number;
   winRate: string;
 }) {
+  const { t } = useTheme();
   return (
-    <Card t={t}>
+    <Card>
       <View
         style={{
           flexDirection: "row",
@@ -65,17 +62,16 @@ export function ProfileHeader({
             Member since {memberSince}
           </Text>
         </View>
-        <Badge t={t} label="Pro" variant="informative" />
+        <Badge label="Pro" variant="informative" />
       </View>
-      <Divider t={t} />
-      <StatRow t={t} label="Global Rank" value={rank} />
+      <Divider />
+      <StatRow label="Global Rank" value={rank} />
       <StatRow
-        t={t}
         label="Drills Completed"
         value={String(drillsCompleted)}
         trend="up"
       />
-      <StatRow t={t} label="Win Rate" value={winRate} trend="up" />
+      <StatRow label="Win Rate" value={winRate} trend="up" />
     </Card>
   );
 }

@@ -1,7 +1,6 @@
-import { LeaderboardRow } from "../../components/features/LeaderboardRow";
-import { ScreenWrapper } from "../../components/layout/ScreenWrapper";
-import { Card, Divider, Label, StatRow } from "../../components/ui";
-import { useTheme } from "../../theme/ThemeContext";
+import { LeaderboardRow } from "@/components/features/LeaderboardRow";
+import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
+import { Card, Divider, Label, StatRow } from "@/components/ui";
 
 const PLAYERS = [
   {
@@ -50,25 +49,22 @@ const PLAYERS = [
 ];
 
 export default function LeaderboardScreen() {
-  const { t } = useTheme();
-
   return (
     <ScreenWrapper>
-      <Card t={t}>
-        <Label t={t}>Your Stats</Label>
-        <StatRow t={t} label="Global Rank" value="#4" />
-        <Divider t={t} />
-        <StatRow t={t} label="Total Score" value="7,430" trend="up" />
-        <StatRow t={t} label="Accuracy" value="74%" trend="up" />
-        <StatRow t={t} label="Weekly Change" value="+320" trend="up" />
+      <Card>
+        <Label>Your Stats</Label>
+        <StatRow label="Global Rank" value="#4" />
+        <Divider />
+        <StatRow label="Total Score" value="7,430" trend="up" />
+        <StatRow label="Accuracy" value="74%" trend="up" />
+        <StatRow label="Weekly Change" value="+320" trend="up" />
       </Card>
 
-      <Label t={t}>Top Players</Label>
-      <Card t={t} style={{ padding: 0, overflow: "hidden" }}>
+      <Label>Top Players</Label>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
         {PLAYERS.map((player, i) => (
           <LeaderboardRow
             key={player.name}
-            t={t}
             rank={player.rank}
             name={player.name}
             score={player.score}

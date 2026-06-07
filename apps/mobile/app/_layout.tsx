@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ThemeProvider, useTheme } from "../theme/ThemeContext";
+import { ThemeProvider, useTheme } from "@/theme/ThemeContext";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000 } },
