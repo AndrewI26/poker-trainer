@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
-import { useTheme } from "@/theme/ThemeContext";
-import theme from "@/theme/theme";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 

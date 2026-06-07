@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
+import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
-import { Badge } from "@/components/ui/Badge";
 
 export function LeaderboardRow({
   rank,

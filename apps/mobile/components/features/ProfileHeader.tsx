@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import { useTheme } from "@/theme/ThemeContext";
-import theme from "@/theme/theme";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Divider";
 import { StatRow } from "@/components/ui/StatRow";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
 export function ProfileHeader({
   name,

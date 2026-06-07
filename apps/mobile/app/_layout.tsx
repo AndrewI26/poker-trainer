@@ -21,8 +21,8 @@ function RootStack() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    LeagueSpartan_400Regular: require("../assets/fonts/LeagueSpartan_400Regular.ttf"),
-    LeagueSpartan_700Bold: require("../assets/fonts/LeagueSpartan_700Bold.ttf"),
+    LeagueSpartan_400Regular: require("@/assets/fonts/LeagueSpartan_400Regular.ttf"),
+    LeagueSpartan_700Bold: require("@/assets/fonts/LeagueSpartan_700Bold.ttf"),
   });
 
   if (!fontsLoaded) return null;
