@@ -11,8 +11,7 @@
     "lint": "echo \"no lint configured\""
   },
   "dependencies": {
-    "@poker-trainer/api-client": "file:../../packages/api-client",
-    "@poker-trainer/query": "file:../../packages/query",
+    "@poker-trainer/api-sdk": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-router": "^1.114.0",
     "react": "^19.0.0",

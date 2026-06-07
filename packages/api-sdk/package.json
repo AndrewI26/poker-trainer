@@ -1,0 +1,17 @@
+{
+  "name": "@poker-trainer/api-sdk",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.13.1",
+    "zod": "^3.24.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": ">=5",
+    "react": ">=18"
+  }
+}

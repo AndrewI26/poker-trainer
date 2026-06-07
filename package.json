@@ -10,7 +10,7 @@
     "db:migrate": "cd apps/api && uv run alembic upgrade head",
     "dev:web": "bun run --filter @poker-trainer/web dev",
     "dev:mobile": "bun run --filter @poker-trainer/mobile start",
-    "codegen": "bun scripts/codegen.ts",
+    "codegen": "openapi-ts",
     "db:shell": "docker compose exec db sh",
     "db:psql": "docker compose exec db psql -U postgres -d poker_trainer",
     "db:logs": "docker compose logs -f db",
@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "@hey-api/client-fetch": "^0.13.1",
+    "@hey-api/openapi-ts": "^0.98.1",
     "concurrently": "^9.1.2",
     "openapi-fetch": "^0.13.5",
     "openapi-typescript": "^7.6.1",

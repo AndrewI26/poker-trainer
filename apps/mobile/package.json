@@ -10,8 +10,7 @@
     "lint": "echo \"no lint configured\""
   },
   "dependencies": {
-    "@poker-trainer/api-client": "file:../../packages/api-client",
-    "@poker-trainer/query": "file:../../packages/query",
+    "@poker-trainer/api-sdk": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "expo": "~54.0.35",
     "expo-constants": "~18.0.13",

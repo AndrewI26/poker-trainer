@@ -15,25 +15,5 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/poker_trainer
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      # Mount source only so the image `.venv` from the build remains usable.
-      - ./apps/api/app:/app/app
-      - ./apps/api/alembic:/app/alembic
-      - ./apps/api/alembic.ini:/app/alembic.ini
-      - ./apps/api/pyproject.toml:/app/pyproject.toml
-      - ./apps/api/uv.lock:/app/uv.lock
-    working_dir: /app
-
 volumes:
   postgres_data:

@@ -14,3 +14,5 @@ htmlcov/
 *.egg-info/
 .DS_Store
 apps/api/.venv/
+.claude/
+packages/api-sdk/src/generated/
