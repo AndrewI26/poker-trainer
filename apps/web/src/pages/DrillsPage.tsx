@@ -1,40 +1,42 @@
-import { createApiClient } from "@poker-trainer/api-client";
 import {
-  useCreateDrill,
-  useDeleteDrill,
-  useDrills,
-} from "@poker-trainer/query";
-import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+  createDrillApiDrillsPostMutation,
+  deleteDrillApiDrillsDrillIdDeleteMutation,
+  listDrillsApiDrillsGetOptions,
+  listDrillsApiDrillsGetQueryKey,
+} from "@poker-trainer/api-sdk";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
-const apiBase = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+export function DrillsPage() {
+  const queryClient = useQueryClient();
+  const {
+    data: drills,
+    isLoading,
+    error,
+  } = useQuery(listDrillsApiDrillsGetOptions());
+  const createDrill = useMutation({
+    ...createDrillApiDrillsPostMutation(),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: listDrillsApiDrillsGetQueryKey(),
+      }),
+  });
+  const deleteDrill = useMutation({
+    ...deleteDrillApiDrillsDrillIdDeleteMutation(),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: listDrillsApiDrillsGetQueryKey(),
+      }),
+  });
 
-export function HomePage() {
-  const client = useMemo(() => createApiClient(apiBase), []);
-  const { data: drills, isLoading, error } = useDrills(client);
-  const createDrill = useCreateDrill(client);
-  const deleteDrill = useDeleteDrill(client);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   return (
-    <div className="page">
-      <header className="header">
-        <h1>Poker Trainer</h1>
-        <p className="muted">
-          Boilerplate: drills CRUD via shared React Query + openapi-fetch
-          client.
-        </p>
-        <nav>
-          <Link to="/" className="link">
-            Home
-          </Link>
-        </nav>
-      </header>
-
+    <>
       <section className="card">
-        <h2>Training drills</h2>
-        {isLoading && <p>Loading…</p>}
+        <h2>Training Drills</h2>
+        {isLoading && <p className="muted">Loading…</p>}
         {error && <p className="error">{(error as Error).message}</p>}
         <ul className="list">
           {drills?.map((d) => (
@@ -46,7 +48,7 @@ export function HomePage() {
               <button
                 type="button"
                 className="btn danger"
-                onClick={() => deleteDrill.mutate(d.id)}
+                onClick={() => deleteDrill.mutate({ path: { drill_id: d.id } })}
               >
                 Delete
               </button>
@@ -56,7 +58,7 @@ export function HomePage() {
       </section>
 
       <section className="card">
-        <h2>Add drill</h2>
+        <h2>Add Drill</h2>
         <form
           className="form"
           onSubmit={(e) => {
@@ -64,9 +66,11 @@ export function HomePage() {
             if (!name.trim()) return;
             createDrill.mutate(
               {
-                name: name.trim(),
-                description: description || null,
-                tags: null,
+                body: {
+                  name: name.trim(),
+                  description: description || null,
+                  tags: null,
+                },
               },
               {
                 onSuccess: () => {
@@ -98,6 +102,6 @@ export function HomePage() {
           </button>
         </form>
       </section>
-    </div>
+    </>
   );
 }

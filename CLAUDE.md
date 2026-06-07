@@ -4,7 +4,7 @@
 
 - **Monorepo**: Bun workspaces (`apps/*`, `packages/*`)
 - **API**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (Docker), managed by `uv`
-- **Web**: Vite + React + TanStack Router + TanStack Query
+- **Web**: Vite + React + React Router v7 + TanStack Query
 - **Mobile**: Expo (React Native) + Expo Router
 - **SDK**: `packages/api-sdk` — fully generated from OpenAPI spec via hey-api (`bun run codegen`). Never hand-edit files in `src/generated/`.
 - **Linting/Formatting**: Biome (TS/JS), Ruff (Python)
@@ -67,7 +67,8 @@ SQLAlchemy models → Alembic migrations → FastAPI routes → OpenAPI spec →
 
 ### Web (`apps/web`)
 
-- TanStack Router with file-based routing (`src/pages/`)
+- React Router v7 — routes defined in `src/routes.tsx`, shared `Layout` in `src/components/Layout.tsx`
+- Pages live in `src/pages/`
 - Shares `@poker-trainer/api-sdk` with mobile
 
 ## Environment
