@@ -3,6 +3,8 @@ import theme from "./theme";
 
 type ColorScheme = "light" | "dark";
 
+export type Theme = typeof theme.light | typeof theme.dark;
+
 interface ThemeContextValue {
   colorScheme: ColorScheme;
   toggle: () => void;

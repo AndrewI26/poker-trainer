@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import type { useTheme } from "../../theme/ThemeContext";
+import type { Theme } from "../../theme/ThemeContext";
 import theme from "../../theme/theme";
 
-type T = ReturnType<typeof useTheme>["t"];
+type T = Theme;
 
 export function IconCard({
   t,

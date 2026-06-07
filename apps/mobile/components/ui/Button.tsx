@@ -1,8 +1,8 @@
 import { Pressable, type PressableProps, Text } from "react-native";
-import type { useTheme } from "../../theme/ThemeContext";
+import type { Theme } from "../../theme/ThemeContext";
 import theme from "../../theme/theme";
 
-type T = ReturnType<typeof useTheme>["t"];
+type T = Theme;
 type ButtonVariant = "primary" | "secondary" | "tertiary" | "warning";
 
 export function Button({

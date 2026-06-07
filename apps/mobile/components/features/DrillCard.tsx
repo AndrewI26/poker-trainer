@@ -1,10 +1,10 @@
 import { Text, View } from "react-native";
-import type { useTheme } from "../../theme/ThemeContext";
+import type { Theme } from "../../theme/ThemeContext";
 import theme from "../../theme/theme";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 
-type T = ReturnType<typeof useTheme>["t"];
+type T = Theme;
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
 export function DrillCard({

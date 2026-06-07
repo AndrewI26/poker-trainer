@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
-import type { useTheme } from "../../theme/ThemeContext";
+import type { Theme } from "../../theme/ThemeContext";
 import theme from "../../theme/theme";
 import { Badge } from "../ui/Badge";
 
-type T = ReturnType<typeof useTheme>["t"];
+type T = Theme;
 
 export function LeaderboardRow({
   t,

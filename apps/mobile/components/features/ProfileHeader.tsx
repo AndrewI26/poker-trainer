@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import type { useTheme } from "../../theme/ThemeContext";
+import type { Theme } from "../../theme/ThemeContext";
 import theme from "../../theme/theme";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Divider } from "../ui/Divider";
 import { StatRow } from "../ui/StatRow";
 
-type T = ReturnType<typeof useTheme>["t"];
+type T = Theme;
 
 export function ProfileHeader({
   t,
