@@ -72,6 +72,8 @@ export function Button({
           fontSize: theme.fontSize.body,
           fontFamily: theme.fontFamily.bold,
           color: s.text,
+          includeFontPadding: false,
+          marginTop: 4,
         }}
       >
         {label}

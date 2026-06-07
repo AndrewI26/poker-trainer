@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
+import { PreflopChart } from "@/components/features/PreflopChart";
 import { ProfileHeader } from "@/components/features/ProfileHeader";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Button, Card, Label } from "@/components/ui";
@@ -18,6 +19,11 @@ export default function ProfileScreen() {
         drillsCompleted={17}
         winRate="68%"
       />
+
+      <Label>Preflop Chart</Label>
+      <Card>
+        <PreflopChart />
+      </Card>
 
       <Label>Settings</Label>
       <Card style={{ padding: 0, overflow: "hidden" }}>

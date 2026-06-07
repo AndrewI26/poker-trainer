@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   ACTION_ORDER_BY_SIZE,
   type Decision,
@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Pressable,
   ScrollView,
   Text,
@@ -21,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
 
@@ -28,19 +30,18 @@ const TABLE_GREEN = "#041209";
 const TABLE_BORDER = "#0f2215";
 const TABLE_PADDING = 16;
 const TOKEN_SIZE = 48;
+const CARDS_REVEAL_DELAY_MS = 500;
 
-function suitColor(suit: Suit, t: ReturnType<typeof useTheme>["t"]) {
-  if (suit === "hearts") return t.sentiment.negative;
-  if (suit === "diamonds") return t.accent.blue;
-  if (suit === "clubs") return t.sentiment.positive;
-  return t.assets.text;
+function suitColor(suit: Suit) {
+  if (suit === "hearts" || suit === "diamonds") return "#cc0000";
+  return "#111111";
 }
 
-function suitSymbol(suit: Suit): string {
-  if (suit === "hearts") return "♥";
-  if (suit === "diamonds") return "♦";
-  if (suit === "clubs") return "♣";
-  return "♠";
+function suitIcon(suit: Suit): keyof typeof MaterialCommunityIcons.glyphMap {
+  if (suit === "hearts") return "cards-heart";
+  if (suit === "diamonds") return "cards-diamond";
+  if (suit === "clubs") return "cards-club";
+  return "cards-spade";
 }
 
 function decisionLabel(action: Decision): string {
@@ -77,46 +78,67 @@ function actionBadgeLabel(a: PreflopAction): string {
   return a.action;
 }
 
+function ChipBet({ action }: { action: PreflopAction }) {
+  if (action.action === "fold" || action.sizeBB == null) return null;
+  const amount = action.sizeBB;
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+        marginTop: 4,
+      }}
+    >
+      <View style={{ width: 16, height: 20, justifyContent: "flex-end" }}>
+        {[0, 1, 2].map((i) => (
+          <MaterialCommunityIcons
+            key={i}
+            name="poker-chip"
+            size={16}
+            color={i === 2 ? theme.palette.gold[400] : theme.palette.gold[600]}
+            style={{
+              position: "absolute",
+              bottom: i * 4,
+              transform: [{ scaleY: 0.35 }],
+            }}
+          />
+        ))}
+      </View>
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.bold,
+          fontSize: theme.fontSize.xs,
+          color: theme.palette.gold[500],
+        }}
+      >
+        {amount % 1 === 0 ? `${amount}BB` : `${amount.toFixed(1)}BB`}
+      </Text>
+    </View>
+  );
+}
+
 function PlayerToken({
   seat,
   action,
   holeCards,
+  cardsTrigger,
+  suppressBet,
 }: {
   seat: PlayerSeat;
   action: PreflopAction | null;
   holeCards: HoleCards;
+  cardsTrigger?: number;
+  suppressBet?: boolean;
 }) {
   const { t } = useTheme();
   const isHero = seat.isHero;
   const avatarBg = isHero ? t.accent.blue : t.assets.bgCardSecondary;
   const avatarBorder = isHero ? t.accent.blue : t.assets.strokeInactive;
-  const badge = action ? actionBadgeColor(action.action, t) : null;
 
   return (
     <View style={{ alignItems: "center", width: TOKEN_SIZE + 24 }}>
-      {badge && (
-        <View
-          style={{
-            backgroundColor: badge.bg,
-            borderRadius: theme.borderRadius.xs,
-            paddingHorizontal: 5,
-            paddingVertical: 2,
-            marginBottom: 3,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: theme.fontFamily.bold,
-              fontSize: theme.fontSize.xs,
-              color: badge.text,
-            }}
-            numberOfLines={1}
-          >
-            {action ? actionBadgeLabel(action) : ""}
-          </Text>
-        </View>
-      )}
-
       <View
         style={{
           width: TOKEN_SIZE,
@@ -153,66 +175,138 @@ function PlayerToken({
         {seat.stackBB}BB
       </Text>
 
+      {action && !suppressBet && <ChipBet action={action} />}
+
       {isHero && (
-        <View style={{ flexDirection: "row", gap: 3, marginTop: 4 }}>
-          {holeCards.map((card) => (
-            <View
-              key={`${card.rank}${card.suit}`}
-              style={{
-                backgroundColor: t.assets.bgCardPrimary,
-                borderRadius: theme.borderRadius.xs,
-                borderWidth: 1,
-                borderColor: t.assets.border,
-                paddingHorizontal: 4,
-                paddingVertical: 2,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: theme.fontFamily.bold,
-                  fontSize: theme.fontSize.body,
-                  color: suitColor(card.suit, t),
-                  lineHeight: theme.fontSize.body * 1.1,
-                }}
-              >
-                {card.rank}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: theme.fontFamily.regular,
-                  fontSize: theme.fontSize.xs,
-                  color: suitColor(card.suit, t),
-                }}
-              >
-                {suitSymbol(card.suit)}
-              </Text>
-            </View>
-          ))}
-        </View>
+        <HeroCards holeCards={holeCards} trigger={cardsTrigger ?? 0} />
       )}
     </View>
   );
 }
 
+function HeroCards({
+  holeCards,
+  trigger,
+}: {
+  holeCards: HoleCards;
+  trigger: number;
+}) {
+  const { t } = useTheme();
+  const translateY = useRef(new Animated.Value(-40)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (trigger === 0) {
+      hasAnimated.current = false;
+      translateY.setValue(-40);
+      opacity.setValue(0);
+      return;
+    }
+    if (hasAnimated.current) return;
+    hasAnimated.current = true;
+    translateY.setValue(-40);
+    opacity.setValue(0);
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          damping: 12,
+          stiffness: 160,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, CARDS_REVEAL_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [trigger, translateY, opacity]);
+
+  return (
+    <Animated.View
+      style={{
+        flexDirection: "row",
+        gap: 3,
+        marginTop: 4,
+        opacity,
+        transform: [{ translateY }],
+      }}
+    >
+      {holeCards.map((card) => (
+        <View
+          key={`${card.rank}${card.suit}`}
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: theme.borderRadius.xs,
+            borderWidth: 1,
+            borderColor: "#e5e5e5",
+            paddingHorizontal: 7,
+            paddingVertical: 5,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: theme.fontFamily.bold,
+              fontSize: theme.fontSize.h6,
+              color: suitColor(card.suit),
+              lineHeight: theme.fontSize.h6 * 1.1,
+            }}
+          >
+            {card.rank}
+          </Text>
+          <MaterialCommunityIcons
+            name={suitIcon(card.suit)}
+            size={14}
+            color={suitColor(card.suit)}
+          />
+        </View>
+      ))}
+    </Animated.View>
+  );
+}
+
+const TOKEN_SLOT_W = TOKEN_SIZE + 32;
+const TOKEN_SLOT_H = TOKEN_SIZE + 60;
+
+// Circle wider than the screen so the visible top cap looks like a flatter arc.
+const CIRCLE_SCALE = 1;
+const ARC_HEIGHT_RATIO = 0.44;
+const EDGE_MARGIN = 12;
+
 function PokerTable({
   scenario,
   revealedCount,
+  blindRevealedCount,
+  cardsTrigger,
 }: {
   scenario: PreflopScenario;
   revealedCount: number;
+  blindRevealedCount: number;
+  cardsTrigger: number;
 }) {
   const { width } = useWindowDimensions();
-  const tableW = width - TABLE_PADDING * 2;
-  const tableH = tableW * 0.52;
 
-  const cx = tableW / 2;
-  const cy = tableH;
-  const rx = tableW / 2 - TOKEN_SIZE / 2 - 8;
-  const ry = tableH - TOKEN_SIZE / 2 - 8;
+  const circleD = width * CIRCLE_SCALE;
+  const circleR = circleD / 2;
+  const circleLeft = -(circleD - width) / 2;
+
+  const arcH = width * ARC_HEIGHT_RATIO;
+
+  const screenCX = width / 2;
+  const screenCY = circleR; // circle top is at y=0, so centre is at y=circleR
+
+  const playerArcR = circleR - TOKEN_SIZE / 2;
+
+  const maxHalfSpread = Math.asin(
+    Math.min(1, (screenCX - TOKEN_SLOT_W / 2 - EDGE_MARGIN) / playerArcR),
+  );
+  const spreadRad = maxHalfSpread * 2;
 
   const { seats, actionsBefore, holeCards, potState } = scenario;
-
   const heroSeat = seats.find((s) => s.isHero) ?? seats[seats.length - 1];
 
   const tablePositions = ACTION_ORDER_BY_SIZE[
@@ -235,42 +329,63 @@ function PokerTable({
   const actingSeats = nonHero.filter((s) =>
     actionsBefore.some((a) => a.position === s.position),
   );
-
   const positions = nonHero.map((seat, i) => {
-    const t_frac = nonHero.length === 1 ? 0.5 : i / (nonHero.length - 1);
-    const angle = (t_frac * 0.75 - 0.875) * Math.PI; // -0.875π to -0.125π (upper arc only)
-    const x = cx + rx * Math.cos(angle);
-    const y = cy + ry * Math.sin(angle);
+    const t = nonHero.length === 1 ? 0.5 : i / (nonHero.length - 1);
+    const angle = -Math.PI / 2 - spreadRad / 2 + t * spreadRad;
+    const x = screenCX + playerArcR * Math.cos(angle);
+    const y = screenCY + playerArcR * Math.sin(angle);
     return { seat, x, y };
   });
 
-  const heroX = cx;
-  const heroY = tableH * 2 - TOKEN_SIZE / 2;
-
-  const containerH = tableH + TOKEN_SIZE + 80;
+  const topPad = 40;
+  const containerH = topPad + arcH + TOKEN_SLOT_H + 16;
 
   return (
-    <View style={{ width: tableW, height: containerH, alignSelf: "center" }}>
+    <View style={{ width, height: containerH }}>
       <View
         style={{
           position: "absolute",
-          top: 0,
+          top: topPad,
           left: 0,
-          width: tableW,
-          height: tableH * 2,
-          borderRadius: tableW / 2,
-          backgroundColor: TABLE_GREEN,
-          borderWidth: 6,
-          borderColor: TABLE_BORDER,
+          width,
+          height: arcH + 8,
           overflow: "hidden",
         }}
-      />
+      >
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: circleLeft,
+            width: circleD,
+            height: circleD,
+            borderRadius: circleR,
+            backgroundColor: TABLE_GREEN,
+            borderWidth: 8,
+            borderColor: TABLE_BORDER,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 6,
+            left: circleLeft + 6,
+            width: circleD - 12,
+            height: circleD - 12,
+            borderRadius: circleR - 6,
+            borderWidth: 2,
+            borderColor: "rgba(255,255,255,0.06)",
+            backgroundColor: "transparent",
+          }}
+        />
+      </View>
 
+      {/* POT label — positioned relative to the full container */}
       <View
         style={{
           position: "absolute",
-          top: tableH * 0.38,
-          left: cx - 40,
+          top: topPad + arcH * 0.42,
+          left: width / 2 - 40,
           width: 80,
           alignItems: "center",
         }}
@@ -279,7 +394,7 @@ function PokerTable({
           style={{
             fontFamily: theme.fontFamily.bold,
             fontSize: theme.fontSize.xs,
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(255,255,255,0.5)",
             textTransform: "uppercase",
             letterSpacing: 1,
           }}
@@ -290,7 +405,7 @@ function PokerTable({
           style={{
             fontFamily: theme.fontFamily.bold,
             fontSize: theme.fontSize.h5,
-            color: "#fff",
+            color: "rgba(255,255,255,0.9)",
           }}
         >
           {potState.potBB.toFixed(1)}BB
@@ -300,13 +415,13 @@ function PokerTable({
       {positions.map(({ seat, x, y }) => {
         const sbBB = scenario.blindStructure.bigBlind;
         const blindAction: PreflopAction | null =
-          seat.position === "SB"
+          seat.position === "SB" && blindRevealedCount >= 1
             ? {
                 position: "SB",
                 action: "limp",
                 sizeBB: scenario.blindStructure.smallBlind / sbBB,
               }
-            : seat.position === "BB"
+            : seat.position === "BB" && blindRevealedCount >= 2
               ? { position: "BB", action: "limp", sizeBB: 1 }
               : null;
 
@@ -323,8 +438,8 @@ function PokerTable({
             key={seat.position}
             style={{
               position: "absolute",
-              left: x - (TOKEN_SIZE + 24) / 2,
-              top: y - TOKEN_SIZE / 2 - 20,
+              left: x - TOKEN_SLOT_W / 2,
+              top: topPad + y - TOKEN_SLOT_H / 2,
             }}
           >
             <PlayerToken
@@ -336,15 +451,428 @@ function PokerTable({
         );
       })}
 
-      <View
+      {/* Hero sits at the bottom center, just below the arc */}
+      {(() => {
+        const heroBlindAction =
+          heroSeat.position === "SB" && blindRevealedCount >= 1
+            ? {
+                position: "SB" as const,
+                action: "limp" as const,
+                sizeBB:
+                  scenario.blindStructure.smallBlind /
+                  scenario.blindStructure.bigBlind,
+              }
+            : heroSeat.position === "BB" && blindRevealedCount >= 2
+              ? { position: "BB" as const, action: "limp" as const, sizeBB: 1 }
+              : null;
+        return (
+          <>
+            {heroBlindAction && (
+              <View
+                style={{
+                  position: "absolute",
+                  left: width / 2 - TOKEN_SLOT_W / 2,
+                  top: topPad + arcH - 28,
+                  alignItems: "center",
+                  width: TOKEN_SLOT_W,
+                }}
+              >
+                <ChipBet action={heroBlindAction} />
+              </View>
+            )}
+            <View
+              style={{
+                position: "absolute",
+                left: width / 2 - TOKEN_SLOT_W / 2,
+                top: topPad + arcH + 12,
+              }}
+            >
+              <PlayerToken
+                key={holeCards.map((c) => `${c.rank}${c.suit}`).join("")}
+                seat={heroSeat}
+                action={heroBlindAction}
+                holeCards={holeCards}
+                cardsTrigger={cardsTrigger}
+                suppressBet
+              />
+            </View>
+          </>
+        );
+      })()}
+    </View>
+  );
+}
+
+const BURST_COLORS = ["#4ade80", "#facc15", "#60a5fa", "#f472b6", "#a78bfa"];
+const BURST_COUNT = 14;
+
+type ParticleConfig = {
+  startX: number;
+  endY: number;
+  color: string;
+  size: number;
+  delay: number;
+};
+
+function BurstParticle({
+  cfg,
+  trigger,
+}: {
+  cfg: ParticleConfig;
+  trigger: number;
+}) {
+  const x = useRef(new Animated.Value(0)).current;
+  const y = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (trigger === 0) return;
+    x.setValue(0);
+    y.setValue(0);
+    opacity.setValue(0);
+    scale.setValue(0);
+
+    Animated.sequence([
+      Animated.delay(cfg.delay),
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.delay(300),
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.spring(scale, {
+          toValue: 1,
+          damping: 6,
+          stiffness: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(x, {
+          toValue: cfg.startX,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(y, {
+          toValue: cfg.endY,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, [trigger, cfg, x, y, opacity, scale]);
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute",
+        width: cfg.size,
+        height: cfg.size,
+        borderRadius: cfg.size / 2,
+        backgroundColor: cfg.color,
+        left: -cfg.size / 2,
+        top: -cfg.size / 2,
+        opacity,
+        transform: [{ translateX: x }, { translateY: y }, { scale }],
+      }}
+    />
+  );
+}
+
+function CorrectBurst({ active }: { active: boolean }) {
+  const { width } = useWindowDimensions();
+  const triggerCount = useRef(0);
+  const configs = useRef<ParticleConfig[]>(
+    Array.from({ length: BURST_COUNT }, (_, i) => ({
+      startX: (Math.random() - 0.5) * width * 0.85,
+      endY: -(120 + Math.random() * 160),
+      color: BURST_COLORS[i % BURST_COLORS.length],
+      size: 6 + Math.random() * 8,
+      delay: Math.random() * 200,
+    })),
+  ).current;
+  const [trigger, setTrigger] = useState(0);
+
+  useEffect(() => {
+    if (active) {
+      triggerCount.current += 1;
+      setTrigger(triggerCount.current);
+    }
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <View
+      pointerEvents="none"
+      style={{ position: "absolute", bottom: 0, left: width / 2, height: 0 }}
+    >
+      {configs.map((cfg, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: particle configs are stable per mount
+        <BurstParticle key={i} cfg={cfg} trigger={trigger} />
+      ))}
+    </View>
+  );
+}
+
+function AnimatedResultCard({
+  result,
+  verdictColor,
+  verdictBg,
+}: {
+  result: EvaluationResult;
+  verdictColor: string;
+  verdictBg: string;
+}) {
+  const { t } = useTheme();
+  const translateY = useRef(new Animated.Value(40)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    translateY.setValue(40);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.spring(translateY, {
+        toValue: 0,
+        damping: 18,
+        stiffness: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [translateY, opacity]);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          backgroundColor: verdictBg,
+          borderRadius: theme.borderRadius.m,
+          borderWidth: 1,
+          borderColor: verdictColor,
+          padding: theme.spacing.md,
+          marginTop: theme.spacing.md,
+          marginHorizontal: TABLE_PADDING,
+        },
+        { opacity, transform: [{ translateY }] },
+      ]}
+    >
+      <Text
         style={{
-          position: "absolute",
-          left: heroX - (TOKEN_SIZE + 24) / 2,
-          top: heroY - TOKEN_SIZE / 2,
+          fontFamily: theme.fontFamily.bold,
+          fontSize: theme.fontSize.h5,
+          color: verdictColor,
+          marginBottom: theme.spacing.xs,
+          textTransform: "uppercase",
         }}
       >
-        <PlayerToken seat={heroSeat} action={null} holeCards={holeCards} />
+        {result.verdict}
+      </Text>
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.regular,
+          fontSize: theme.fontSize.body,
+          color: t.assets.text,
+          lineHeight: theme.fontSize.body * theme.lineHeight.body,
+        }}
+      >
+        {result.explanation}
+      </Text>
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.regular,
+          fontSize: theme.fontSize.sm,
+          color: t.assets.subtext,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        Best play: {decisionLabel(result.recommendedAction)}
+      </Text>
+    </Animated.View>
+  );
+}
+
+function MoveTimeline({
+  actions,
+  scenario,
+  revealedCount,
+  blindRevealedCount,
+  onSeek,
+}: {
+  actions: PreflopAction[];
+  scenario: PreflopScenario;
+  revealedCount: number;
+  blindRevealedCount: number;
+  onSeek: (index: number, blindRevealedCount?: number) => void;
+}) {
+  const { t } = useTheme();
+  if (actions.length === 0) return null;
+
+  const sbSeat = scenario.seats.find((s) => s.position === "SB");
+  const bbSeat = scenario.seats.find((s) => s.position === "BB");
+  const blindActions: PreflopAction[] = [
+    ...(sbSeat
+      ? [
+          {
+            position: "SB" as const,
+            action: "limp" as const,
+            sizeBB:
+              scenario.blindStructure.smallBlind /
+              scenario.blindStructure.bigBlind,
+          },
+        ]
+      : []),
+    ...(bbSeat
+      ? [{ position: "BB" as const, action: "limp" as const, sizeBB: 1 }]
+      : []),
+  ];
+  const allActions = [...blindActions, ...actions];
+  const blindCount = blindActions.length;
+
+  const globalIndex = blindRevealedCount + revealedCount;
+  const canBack = globalIndex > 1;
+  const canForward = revealedCount < actions.length;
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: TABLE_PADDING,
+        paddingVertical: theme.spacing.sm,
+        gap: 12,
+      }}
+    >
+      <Pressable
+        onPress={() => {
+          if (!canBack) return;
+          if (revealedCount > 0) onSeek(revealedCount - 1, 2);
+          else onSeek(0, blindRevealedCount - 1);
+        }}
+        hitSlop={8}
+        style={{ opacity: canBack ? 1 : 0.25 }}
+      >
+        <Ionicons name="chevron-back" size={18} color={t.assets.subtext} />
+      </Pressable>
+
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {allActions.map((action, i) => {
+          const isBlind = i < blindCount;
+          const actionIndex = i - blindCount;
+          const revealed = isBlind
+            ? i < blindRevealedCount
+            : actionIndex < revealedCount;
+          const active = isBlind
+            ? i === blindRevealedCount - 1 && revealedCount === 0
+            : actionIndex === revealedCount - 1;
+          const badgeColors = actionBadgeColor(action.action, t);
+
+          return (
+            <View
+              // biome-ignore lint/suspicious/noArrayIndexKey: action order is stable within a scenario
+              key={`${action.position}-${i}`}
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              {i > 0 && (
+                <View
+                  style={{
+                    width: 8,
+                    height: 1,
+                    backgroundColor: revealed
+                      ? badgeColors.text
+                      : t.assets.strokeInactive,
+                    opacity: 0.4,
+                  }}
+                />
+              )}
+              <Pressable
+                onPress={() =>
+                  isBlind ? onSeek(0, i + 1) : onSeek(i - blindCount + 1, 2)
+                }
+                hitSlop={8}
+                style={{
+                  width: 28,
+                  height: 28,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    width: active ? 28 : 22,
+                    height: active ? 28 : 22,
+                    borderRadius: 14,
+                    backgroundColor: revealed
+                      ? action.action === "fold"
+                        ? t.assets.bgDisabled
+                        : badgeColors.bg
+                      : t.assets.bgCardSecondary,
+                    borderWidth: active ? 2 : 1,
+                    borderColor: revealed
+                      ? action.action === "fold"
+                        ? t.assets.strokeInactive
+                        : badgeColors.text
+                      : t.assets.strokeInactive,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: theme.fontFamily.bold,
+                      fontSize: 8,
+                      color: revealed
+                        ? action.action === "fold"
+                          ? t.assets.strokeInactive
+                          : badgeColors.text
+                        : t.assets.subtext,
+                      textAlign: "center",
+                      includeFontPadding: false,
+                      lineHeight: 8,
+                      paddingTop: 2,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {action.position}
+                  </Text>
+                  {revealed && action.action === "fold" && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        width: active ? 28 : 22,
+                        height: 1,
+                        backgroundColor: t.assets.strokeInactive,
+                        opacity: 0.6,
+                        transform: [{ rotate: "-45deg" }],
+                      }}
+                    />
+                  )}
+                </View>
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
+
+      <Pressable
+        onPress={() => canForward && onSeek(revealedCount + 1, 2)}
+        hitSlop={8}
+        style={{ opacity: canForward ? 1 : 0.25 }}
+      >
+        <Ionicons name="chevron-forward" size={18} color={t.assets.subtext} />
+      </Pressable>
     </View>
   );
 }
@@ -362,22 +890,46 @@ export default function PreflopScreen() {
   const [phase, setPhase] = useState<QuizPhase>("quiz");
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [revealedCount, setRevealedCount] = useState(0);
+  const [blindRevealedCount, setBlindRevealedCount] = useState(2);
+  const [cardsTrigger, setCardsTrigger] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function stopAutoReveal() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }
+
+  function seekTo(index: number, brc?: number) {
+    stopAutoReveal();
+    const newBlindRevealedCount = brc ?? 2;
+    setBlindRevealedCount(newBlindRevealedCount);
+    setRevealedCount(index);
+    if (index >= scenario.actionsBefore.length && newBlindRevealedCount >= 2) {
+      setCardsTrigger((n) => n + 1);
+    }
+  }
 
   useEffect(() => {
     setRevealedCount(0);
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     const total = scenario.actionsBefore.length;
-    if (total === 0) return;
+    if (total === 0) {
+      setCardsTrigger((n) => n + 1);
+      return;
+    }
 
     intervalRef.current = setInterval(() => {
       setRevealedCount((prev) => {
-        if (prev >= total) {
+        const next = prev + 1;
+        if (next >= total) {
           if (intervalRef.current) clearInterval(intervalRef.current);
-          return prev;
+          // Fire the card trigger at the exact moment the last reveal lands.
+          setCardsTrigger((n) => n + 1);
         }
-        return prev + 1;
+        return next;
       });
     }, 800);
 
@@ -395,6 +947,8 @@ export default function PreflopScreen() {
   }
 
   function nextHand() {
+    setCardsTrigger(0);
+    setBlindRevealedCount(2);
     setScenario(generateScenario());
     setResult(null);
     setPhase("quiz");
@@ -430,11 +984,14 @@ export default function PreflopScreen() {
           paddingHorizontal: theme.spacing.md,
           flexDirection: "row",
           alignItems: "center",
-          borderBottomWidth: 1,
-          borderBottomColor: t.assets.strokeInactive,
+          justifyContent: "center",
         }}
       >
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          style={{ width: 40, alignItems: "flex-start" }}
+        >
           <Ionicons
             name="chevron-back-outline"
             size={24}
@@ -443,70 +1000,53 @@ export default function PreflopScreen() {
         </Pressable>
         <Text
           style={{
+            flex: 1,
             fontFamily: theme.fontFamily.bold,
             fontSize: theme.fontSize.body,
             color: t.assets.text,
-            marginLeft: theme.spacing.sm,
+            includeFontPadding: false,
+            marginTop: 4,
+            textAlign: "center",
           }}
         >
           Preflop Trainer
         </Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: TABLE_PADDING,
           paddingTop: theme.spacing.md,
           paddingBottom: 160,
         }}
       >
-        <PokerTable scenario={scenario} revealedCount={revealedCount} />
+        <PokerTable
+          scenario={scenario}
+          revealedCount={revealedCount}
+          blindRevealedCount={blindRevealedCount}
+          cardsTrigger={cardsTrigger}
+        />
+
+        <MoveTimeline
+          actions={scenario.actionsBefore}
+          scenario={scenario}
+          revealedCount={revealedCount}
+          blindRevealedCount={blindRevealedCount}
+          onSeek={seekTo}
+        />
 
         {phase === "result" && result && (
-          <View
-            style={{
-              backgroundColor: verdictBg,
-              borderRadius: theme.borderRadius.m,
-              borderWidth: 1,
-              borderColor: verdictColor,
-              padding: theme.spacing.md,
-              marginTop: theme.spacing.md,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: theme.fontFamily.bold,
-                fontSize: theme.fontSize.h5,
-                color: verdictColor,
-                marginBottom: theme.spacing.xs,
-                textTransform: "uppercase",
-              }}
-            >
-              {result.verdict}
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fontFamily.regular,
-                fontSize: theme.fontSize.body,
-                color: t.assets.text,
-                lineHeight: theme.fontSize.body * theme.lineHeight.body,
-              }}
-            >
-              {result.explanation}
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fontFamily.regular,
-                fontSize: theme.fontSize.sm,
-                color: t.assets.subtext,
-                marginTop: theme.spacing.sm,
-              }}
-            >
-              Best play: {decisionLabel(result.recommendedAction)}
-            </Text>
-          </View>
+          <AnimatedResultCard
+            result={result}
+            verdictColor={verdictColor}
+            verdictBg={verdictBg}
+          />
         )}
+
+        <CorrectBurst
+          active={phase === "result" && result?.verdict === "correct"}
+        />
       </ScrollView>
 
       <View
@@ -516,11 +1056,9 @@ export default function PreflopScreen() {
           left: 0,
           right: 0,
           paddingBottom: insets.bottom + theme.spacing.sm,
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.spacing.xs,
           paddingTop: theme.spacing.sm,
           backgroundColor: t.assets.bgPage,
-          borderTopWidth: 1,
-          borderTopColor: t.assets.strokeInactive,
           gap: theme.spacing.sm,
         }}
       >
@@ -566,12 +1104,7 @@ export default function PreflopScreen() {
             </View>
           </>
         ) : (
-          <ActionButton
-            label="Next Hand →"
-            color={t.assets.text}
-            bg={t.assets.bgCardPrimary}
-            onPress={nextHand}
-          />
+          <Button label="Next Hand" variant="secondary" onPress={nextHand} />
         )}
       </View>
     </View>
@@ -601,8 +1134,6 @@ function ActionButton({
         flex: flex ? 1 : undefined,
         backgroundColor: bg,
         borderRadius: theme.borderRadius.m,
-        borderWidth: 1,
-        borderColor: color,
         paddingVertical: theme.spacing.sm,
         paddingHorizontal: theme.spacing.md,
         alignItems: "center",
@@ -614,6 +1145,8 @@ function ActionButton({
           fontFamily: theme.fontFamily.bold,
           fontSize: theme.fontSize.body,
           color,
+          includeFontPadding: false,
+          marginTop: 4,
         }}
       >
         {label}
