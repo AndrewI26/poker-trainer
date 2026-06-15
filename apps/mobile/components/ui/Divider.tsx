@@ -1,10 +1,9 @@
 import { View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
-type T = Theme;
-
-export function Divider({ t }: { t: T }) {
+export function Divider() {
+  const { t } = useTheme();
   return (
     <View
       style={{

@@ -1,23 +1,21 @@
 import { Pressable, type PressableProps, Text } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
-type T = Theme;
 type ButtonVariant = "primary" | "secondary" | "tertiary" | "warning";
 
 export function Button({
-  t,
   label,
   variant = "primary",
   onPress,
   disabled,
 }: {
-  t: T;
   label: string;
   variant?: ButtonVariant;
   onPress?: PressableProps["onPress"];
   disabled?: boolean;
 }) {
+  const { t } = useTheme();
   const styles: Record<
     ButtonVariant,
     { bg: string; text: string; border?: string }
@@ -74,6 +72,8 @@ export function Button({
           fontSize: theme.fontSize.body,
           fontFamily: theme.fontFamily.bold,
           color: s.text,
+          includeFontPadding: false,
+          marginTop: 4,
         }}
       >
         {label}

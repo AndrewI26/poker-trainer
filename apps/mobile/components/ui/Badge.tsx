@@ -1,19 +1,17 @@
 import { Text, View } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
-type T = Theme;
 type BadgeVariant = "positive" | "negative" | "informative" | "neutral";
 
 export function Badge({
-  t,
   label,
   variant = "neutral",
 }: {
-  t: T;
   label: string;
   variant?: BadgeVariant;
 }) {
+  const { t } = useTheme();
   const colors: Record<BadgeVariant, { bg: string; text: string }> = {
     positive: { bg: t.sentiment.positiveBg, text: t.sentiment.positive },
     negative: { bg: t.sentiment.negativeBg, text: t.sentiment.negative },

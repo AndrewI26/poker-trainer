@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+Don't use comments when writing code, unless a concept is extremly unintuitive and is not explained by the code itself.
+
 ## Stack
 
 - **Monorepo**: Bun workspaces (`apps/*`, `packages/*`)

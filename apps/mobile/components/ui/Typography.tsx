@@ -1,10 +1,9 @@
 import { Text } from "react-native";
-import type { Theme } from "../../theme/ThemeContext";
-import theme from "../../theme/theme";
+import { useTheme } from "@/theme/ThemeContext";
+import theme from "@/theme/theme";
 
-type T = Theme;
-
-export function Label({ t, children }: { t: T; children: string }) {
+export function Label({ children }: { children: string }) {
+  const { t } = useTheme();
   return (
     <Text
       style={{
@@ -21,7 +20,8 @@ export function Label({ t, children }: { t: T; children: string }) {
   );
 }
 
-export function Heading({ t, children }: { t: T; children: string }) {
+export function Heading({ children }: { children: string }) {
+  const { t } = useTheme();
   return (
     <Text
       style={{
@@ -36,7 +36,8 @@ export function Heading({ t, children }: { t: T; children: string }) {
   );
 }
 
-export function Body({ t, children }: { t: T; children: string }) {
+export function Body({ children }: { children: string }) {
+  const { t } = useTheme();
   return (
     <Text
       style={{
