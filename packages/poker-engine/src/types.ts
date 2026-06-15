@@ -64,7 +64,17 @@ export interface PotState {
   numRaisers: number;
 }
 
-export interface PreflopScenario {
+export interface TableScenario {
+  tableSize: TableSize;
+  heroPosition: Position;
+  holeCards: HoleCards;
+  blindStructure: BlindStructure;
+  seats: PlayerSeat[];
+  actionsBefore: PreflopAction[];
+  potState: PotState;
+}
+
+export interface PreflopScenario extends TableScenario {
   id: string;
   seed: number;
   tableSize: TableSize;

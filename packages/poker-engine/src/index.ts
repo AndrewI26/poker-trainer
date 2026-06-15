@@ -26,5 +26,6 @@ export type {
   Rank,
   ScenarioGeneratorOptions,
   Suit,
+  TableScenario,
   TableSize,
 } from "./types";
