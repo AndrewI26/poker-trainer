@@ -10,6 +10,7 @@ dependencies = [
   "psycopg[binary]>=3.2.3",
   "pydantic-settings>=2.7.0",
   "alembic>=1.14.0",
+  "passlib[argon2,bcrypt]>=1.7.4",
 ]
 
 [dependency-groups]

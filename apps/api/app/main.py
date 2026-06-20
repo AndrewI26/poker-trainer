@@ -6,7 +6,7 @@ from app.routers import users
 
 settings = get_settings()
 
-app = FastAPI(title=settings.api_title)
+app = FastAPI(title=settings.api_title, debug=settings.env == "development")
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(users.router)
+
 
 @app.get("/health", tags=["health"])
 def health() -> dict[str, str]:
