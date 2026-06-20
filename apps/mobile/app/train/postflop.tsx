@@ -1,22 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
-  type Decision,
-  type EvaluationResult,
-  evaluateDecision,
-  generateScenario,
-  type PreflopScenario,
+  evaluatePostflopDecision,
+  generatePostflopScenario,
+  type PostflopDecision,
+  type PostflopEvaluationResult,
+  type PostflopScenario,
 } from "@poker-trainer/poker-engine";
-
-function preflopActionLabel(action: Decision): string {
-  if (action.type === "fold") return "Fold";
-  if (action.type === "call") return "Call";
-  if (action.type === "raise") return `Raise to ${action.sizeBB}BB`;
-  return "All-in";
-}
-
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CorrectBurst } from "@/components/features/trainer/CorrectBurst";
 import { MoveTimeline } from "@/components/features/trainer/MoveTimeline";
@@ -28,16 +20,16 @@ import theme from "@/theme/theme";
 
 type QuizPhase = "quiz" | "result";
 
-export default function PreflopScreen() {
+export default function PostflopScreen() {
   const { t } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [scenario, setScenario] = useState<PreflopScenario>(() =>
-    generateScenario(),
+  const [scenario, setScenario] = useState<PostflopScenario>(() =>
+    generatePostflopScenario(),
   );
   const [phase, setPhase] = useState<QuizPhase>("quiz");
-  const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [result, setResult] = useState<PostflopEvaluationResult | null>(null);
   const [revealedCount, setRevealedCount] = useState(0);
   const [blindRevealedCount, setBlindRevealedCount] = useState(2);
   const [cardsTrigger, setCardsTrigger] = useState(0);
@@ -52,16 +44,17 @@ export default function PreflopScreen() {
 
   function seekTo(index: number, brc?: number) {
     stopAutoReveal();
-    const newBlindRevealedCount = brc ?? 2;
-    setBlindRevealedCount(newBlindRevealedCount);
+    const newBrc = brc ?? 2;
+    setBlindRevealedCount(newBrc);
     setRevealedCount(index);
-    if (index >= scenario.actionsBefore.length && newBlindRevealedCount >= 2) {
+    if (index >= scenario.actionsBefore.length && newBrc >= 2) {
       setCardsTrigger((n) => n + 1);
     }
   }
 
   useEffect(() => {
     setRevealedCount(0);
+    setCardsTrigger(0);
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     const total = scenario.actionsBefore.length;
@@ -75,7 +68,6 @@ export default function PreflopScreen() {
         const next = prev + 1;
         if (next >= total) {
           if (intervalRef.current) clearInterval(intervalRef.current);
-          // Fire the card trigger at the exact moment the last reveal lands.
           setCardsTrigger((n) => n + 1);
         }
         return next;
@@ -87,10 +79,8 @@ export default function PreflopScreen() {
     };
   }, [scenario]);
 
-  const actionsComplete = revealedCount >= scenario.actionsBefore.length;
-
-  function handleDecision(decision: Decision) {
-    const evaluation = evaluateDecision(scenario, decision);
+  function handleDecision(decision: PostflopDecision) {
+    const evaluation = evaluatePostflopDecision(scenario, decision);
     setResult(evaluation);
     setPhase("result");
   }
@@ -98,16 +88,26 @@ export default function PreflopScreen() {
   function nextHand() {
     setCardsTrigger(0);
     setBlindRevealedCount(2);
-    setScenario(generateScenario());
+    setScenario(generatePostflopScenario());
     setResult(null);
     setPhase("quiz");
   }
 
-  const { potState } = scenario;
-  const facingRaise = potState.callAmountBB > 1;
-  const raiseSizeBB = potState.facingRaiseSizeBB
-    ? potState.facingRaiseSizeBB * 3
-    : 2.5;
+  const { villainAction, potState, heroIsInPosition } = scenario;
+  const facingBet = villainAction.action === "bet";
+  const betSize = facingBet
+    ? (villainAction as { action: "bet"; sizeBB: number }).sizeBB
+    : 0;
+  const raiseSizeBB = Math.round(betSize * 3);
+  const betSizeBB = Math.round(potState.potBB * 0.67);
+
+  function postflopActionLabel(action: PostflopDecision): string {
+    if (action.type === "fold") return "Fold";
+    if (action.type === "check") return "Check";
+    if (action.type === "call") return "Call";
+    if (action.type === "bet") return `Bet ${action.sizeBB}BB`;
+    return `Raise to ${action.sizeBB}BB`;
+  }
 
   const verdictColor =
     result?.verdict === "correct"
@@ -158,17 +158,22 @@ export default function PreflopScreen() {
             textAlign: "center",
           }}
         >
-          Preflop Trainer
+          Postflop Trainer
         </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={{ flex: 1, paddingTop: theme.spacing.xl }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingTop: theme.spacing.xl }}
+        showsVerticalScrollIndicator={false}
+      >
         <PokerTable
           scenario={scenario}
           revealedCount={revealedCount}
           blindRevealedCount={blindRevealedCount}
           cardsTrigger={cardsTrigger}
+          communityCards={scenario.board}
         />
 
         <View style={{ height: theme.spacing.xs }} />
@@ -181,13 +186,22 @@ export default function PreflopScreen() {
           onSeek={seekTo}
         />
 
+        <View style={{ height: theme.spacing.xs }} />
+
+        <VillainActionBar
+          villainAction={villainAction}
+          potBB={potState.potBB}
+          heroIsInPosition={heroIsInPosition}
+        />
+
         {phase === "result" && result && (
           <ResultCard
             verdict={result.verdict}
             explanation={result.explanation}
-            recommendedActionLabel={preflopActionLabel(
+            recommendedActionLabel={postflopActionLabel(
               result.recommendedAction,
             )}
+            extraLines={result.reasoning}
             verdictColor={verdictColor}
             verdictBg={verdictBg}
           />
@@ -196,7 +210,9 @@ export default function PreflopScreen() {
         <CorrectBurst
           active={phase === "result" && result?.verdict === "correct"}
         />
-      </View>
+
+        <View style={{ height: 160 }} />
+      </ScrollView>
 
       <View
         style={{
@@ -214,43 +230,53 @@ export default function PreflopScreen() {
         {phase === "quiz" ? (
           <>
             <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-              <ActionButton
-                label="Fold"
-                color={t.sentiment.negative}
-                bg={t.sentiment.negativeBg}
-                onPress={() => handleDecision({ type: "fold" })}
-                disabled={!actionsComplete}
-                flex
-              />
-              <ActionButton
-                label={facingRaise ? `Call ${potState.callAmountBB}BB` : "Call"}
-                color={t.accent.blue}
-                bg={theme.palette.blue[800]}
-                onPress={() => handleDecision({ type: "call" })}
-                disabled={!actionsComplete || !facingRaise}
-                flex
-              />
+              {facingBet ? (
+                <ActionButton
+                  label="Fold"
+                  color={t.sentiment.negative}
+                  bg={t.sentiment.negativeBg}
+                  onPress={() => handleDecision({ type: "fold" })}
+                  flex
+                />
+              ) : (
+                <ActionButton
+                  label="Check"
+                  color={t.assets.subtext}
+                  bg={t.assets.bgCardSecondary}
+                  onPress={() => handleDecision({ type: "check" })}
+                  flex
+                />
+              )}
+              {facingBet ? (
+                <ActionButton
+                  label={`Call ${betSize}BB`}
+                  color={t.accent.blue}
+                  bg={theme.palette.blue[800]}
+                  onPress={() => handleDecision({ type: "call" })}
+                  flex
+                />
+              ) : (
+                <ActionButton
+                  label={`Bet ${betSizeBB}BB`}
+                  color={t.sentiment.positive}
+                  bg={t.sentiment.positiveBg}
+                  onPress={() =>
+                    handleDecision({ type: "bet", sizeBB: betSizeBB })
+                  }
+                  flex
+                />
+              )}
             </View>
-            <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+            {facingBet && (
               <ActionButton
-                label={`Raise ${raiseSizeBB}BB`}
+                label={`Raise to ${raiseSizeBB}BB`}
                 color={t.sentiment.positive}
                 bg={t.sentiment.positiveBg}
                 onPress={() =>
                   handleDecision({ type: "raise", sizeBB: raiseSizeBB })
                 }
-                disabled={!actionsComplete}
-                flex
               />
-              <ActionButton
-                label="All-in"
-                color={theme.palette.gold[500]}
-                bg={theme.palette.gold[800]}
-                onPress={() => handleDecision({ type: "allin" })}
-                disabled={!actionsComplete}
-                flex
-              />
-            </View>
+            )}
           </>
         ) : (
           <Button label="Next Hand" variant="secondary" onPress={nextHand} />
@@ -260,25 +286,81 @@ export default function PreflopScreen() {
   );
 }
 
+function VillainActionBar({
+  villainAction,
+  potBB,
+  heroIsInPosition,
+}: {
+  villainAction: PostflopScenario["villainAction"];
+  potBB: number;
+  heroIsInPosition: boolean;
+}) {
+  const { t } = useTheme();
+  const posLabel = heroIsInPosition ? "OOP villain" : "IP villain";
+  const actionLabel =
+    villainAction.action === "check"
+      ? "checked"
+      : `bet ${(villainAction as { action: "bet"; sizeBB: number }).sizeBB}BB`;
+
+  return (
+    <View
+      style={{
+        marginHorizontal: theme.spacing.md,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: t.assets.bgCard,
+        borderRadius: theme.borderRadius.m,
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.regular,
+          fontSize: theme.fontSize.body,
+          color: t.assets.subtext,
+        }}
+      >
+        {posLabel}{" "}
+        <Text
+          style={{
+            fontFamily: theme.fontFamily.bold,
+            color: t.assets.text,
+          }}
+        >
+          {actionLabel}
+        </Text>
+      </Text>
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.regular,
+          fontSize: theme.fontSize.xs,
+          color: t.assets.subtext,
+        }}
+      >
+        Pot: {potBB}BB
+      </Text>
+    </View>
+  );
+}
+
 function ActionButton({
   label,
   color,
   bg,
   onPress,
-  disabled,
   flex,
 }: {
   label: string;
   color: string;
   bg: string;
   onPress: () => void;
-  disabled?: boolean;
   flex?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
       style={({ pressed }) => ({
         flex: flex ? 1 : undefined,
         backgroundColor: bg,
@@ -286,7 +368,7 @@ function ActionButton({
         paddingVertical: theme.spacing.sm,
         paddingHorizontal: theme.spacing.md,
         alignItems: "center",
-        opacity: disabled ? 0.35 : pressed ? 0.75 : 1,
+        opacity: pressed ? 0.75 : 1,
       })}
     >
       <Text

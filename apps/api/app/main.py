@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.routers import drills
+from app.config import get_settings
+from app.routers import users
+
+settings = get_settings()
 
 app = FastAPI(title=settings.api_title)
 
@@ -14,9 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(drills.router, prefix="/api")
+app.include_router(users.router)
 
-
-@app.get("/health")
+@app.get("/health", tags=["health"])
 def health() -> dict[str, str]:
     return {"status": "ok"}

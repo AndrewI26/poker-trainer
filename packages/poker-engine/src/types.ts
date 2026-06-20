@@ -140,3 +140,41 @@ export interface ScenarioGeneratorOptions {
   tableSize?: TableSize;
   heroPosition?: Position;
 }
+
+export type Street = "flop" | "turn" | "river";
+
+export type PostflopVillainAction =
+  | { action: "check" }
+  | { action: "bet"; sizeBB: number };
+
+export type PostflopDecision =
+  | { type: "fold" }
+  | { type: "call" }
+  | { type: "check" }
+  | { type: "bet"; sizeBB: number }
+  | { type: "raise"; sizeBB: number };
+
+export type PostflopHandStrength =
+  | "monster"
+  | "strong"
+  | "medium"
+  | "draw"
+  | "weak";
+
+export interface PostflopScenario extends TableScenario {
+  id: string;
+  seed: number;
+  street: Street;
+  board: Card[];
+  heroIsInPosition: boolean;
+  effectiveStackBB: number;
+  villainAction: PostflopVillainAction;
+}
+
+export interface PostflopEvaluationResult {
+  verdict: EvaluationVerdict;
+  explanation: string;
+  recommendedAction: PostflopDecision;
+  handStrength: PostflopHandStrength;
+  reasoning: string[];
+}
