@@ -4,24 +4,39 @@ from app.schemas.users import UserCreate, UserPublic
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-pwd_context = CryptContext(
-    schemes=["argon2"],
-    deprecated="auto",
-    bcrypt__rounds=12,
-)
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+password_hash = PasswordHash.recommended()
+DUMMY_HASH = password_hash.hash("dummypassword")
 
 
 def hash_password(password: str):
-    return pwd_context.hash(password)
+    return password_hash.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
+    return password_hash.verify(plain_password, hashed_password)
+
+
+def get_user(db: Session, email: str) -> User | None:
+    return db.scalar(select(User).where(User.email == email))
+
+
+def authenticate_user(db: Session, email: str, password):
+    user = get_user(db, email)
+    if not user:
+        verify_password(password, DUMMY_HASH)
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
 
 
 @router.get("/", response_model=list[UserPublic])

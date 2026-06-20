@@ -11,6 +11,8 @@ dependencies = [
   "pydantic-settings>=2.7.0",
   "alembic>=1.14.0",
   "passlib[argon2,bcrypt]>=1.7.4",
+  "pyjwt>=2.13.0",
+  "pwdlib[argon2]>=0.3.0",
 ]
 
 [dependency-groups]
