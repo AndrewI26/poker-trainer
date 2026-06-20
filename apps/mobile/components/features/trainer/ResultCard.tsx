@@ -1,22 +1,20 @@
-import type { Decision, EvaluationResult } from "@poker-trainer/poker-engine";
 import { useEffect, useRef } from "react";
 import { Animated, Text } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
 
-function decisionLabel(action: Decision): string {
-  if (action.type === "fold") return "Fold";
-  if (action.type === "call") return "Call";
-  if (action.type === "raise") return `Raise to ${action.sizeBB}BB`;
-  return "All-in";
-}
-
 export function ResultCard({
-  result,
+  verdict,
+  explanation,
+  recommendedActionLabel,
+  extraLines,
   verdictColor,
   verdictBg,
 }: {
-  result: EvaluationResult;
+  verdict: string;
+  explanation: string;
+  recommendedActionLabel: string;
+  extraLines?: string[];
   verdictColor: string;
   verdictBg: string;
 }) {
@@ -66,7 +64,7 @@ export function ResultCard({
           textTransform: "uppercase",
         }}
       >
-        {result.verdict}
+        {verdict}
       </Text>
       <Text
         style={{
@@ -76,7 +74,7 @@ export function ResultCard({
           lineHeight: theme.fontSize.body * theme.lineHeight.body,
         }}
       >
-        {result.explanation}
+        {explanation}
       </Text>
       <Text
         style={{
@@ -86,8 +84,21 @@ export function ResultCard({
           marginTop: theme.spacing.sm,
         }}
       >
-        Best play: {decisionLabel(result.recommendedAction)}
+        Best play: {recommendedActionLabel}
       </Text>
+      {extraLines?.map((line) => (
+        <Text
+          key={line}
+          style={{
+            fontFamily: theme.fontFamily.regular,
+            fontSize: theme.fontSize.sm,
+            color: t.assets.subtext,
+            marginTop: theme.spacing.xs,
+          }}
+        >
+          {line}
+        </Text>
+      ))}
     </Animated.View>
   );
 }

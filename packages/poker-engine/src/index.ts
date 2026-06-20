@@ -1,6 +1,10 @@
 export { createDeck, dealCards, shuffleDeck } from "./deck";
 export { evaluateDecision } from "./evaluator";
 export { classifyHand, isPocketPair, isSuited, rankToNumber } from "./hands";
+export {
+  evaluatePostflopDecision,
+  generatePostflopScenario,
+} from "./postflop";
 export { SeededRng } from "./rng";
 export {
   ACTION_ORDER,
@@ -20,11 +24,17 @@ export type {
   HoleCards,
   PlayerSeat,
   Position,
+  PostflopDecision,
+  PostflopEvaluationResult,
+  PostflopHandStrength,
+  PostflopScenario,
+  PostflopVillainAction,
   PotState,
   PreflopAction,
   PreflopScenario,
   Rank,
   ScenarioGeneratorOptions,
+  Street,
   Suit,
   TableScenario,
   TableSize,

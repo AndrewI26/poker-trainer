@@ -1,8 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import type {
-  PreflopAction,
-  PreflopScenario,
-} from "@poker-trainer/poker-engine";
+import type { PreflopAction, TableScenario } from "@poker-trainer/poker-engine";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
@@ -30,7 +27,7 @@ export function MoveTimeline({
   onSeek,
 }: {
   actions: PreflopAction[];
-  scenario: PreflopScenario;
+  scenario: TableScenario;
   revealedCount: number;
   blindRevealedCount: number;
   onSeek: (index: number, blindRevealedCount?: number) => void;

@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   ACTION_ORDER_BY_SIZE,
+  type Card,
   type HoleCards,
   type PlayerSeat,
   type PreflopAction,
@@ -230,11 +231,13 @@ export function PokerTable({
   revealedCount,
   blindRevealedCount,
   cardsTrigger,
+  communityCards,
 }: {
   scenario: TableScenario;
   revealedCount: number;
   blindRevealedCount: number;
   cardsTrigger: number;
+  communityCards?: Card[];
 }) {
   const { width } = useWindowDimensions();
 
@@ -371,19 +374,54 @@ export function PokerTable({
           gap: 6,
         }}
       >
-        {["c1", "c2", "c3", "c4", "c5"].map((id) => (
-          <View
-            key={id}
-            style={{
-              width: 36,
-              height: 50,
-              borderRadius: 5,
-              backgroundColor: "rgba(255,255,255,0.07)",
-              borderWidth: 1.5,
-              borderColor: "rgba(255,255,255,0.12)",
-            }}
-          />
-        ))}
+        {["c1", "c2", "c3", "c4", "c5"].map((id, i) => {
+          const card = communityCards?.[i];
+          return card ? (
+            <View
+              key={id}
+              style={{
+                width: 36,
+                height: 50,
+                borderRadius: 5,
+                backgroundColor: "#ffffff",
+                borderWidth: 1,
+                borderColor: "#e5e5e5",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingTop: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: theme.fontFamily.bold,
+                  fontSize: theme.fontSize.body,
+                  color: suitColor(card.suit),
+                  lineHeight: theme.fontSize.body * 1.1,
+                  includeFontPadding: false,
+                }}
+              >
+                {card.rank}
+              </Text>
+              <MaterialCommunityIcons
+                name={suitIcon(card.suit)}
+                size={14}
+                color={suitColor(card.suit)}
+              />
+            </View>
+          ) : (
+            <View
+              key={id}
+              style={{
+                width: 36,
+                height: 50,
+                borderRadius: 5,
+                backgroundColor: "rgba(255,255,255,0.07)",
+                borderWidth: 1.5,
+                borderColor: "rgba(255,255,255,0.12)",
+              }}
+            />
+          );
+        })}
       </View>
 
       <View
