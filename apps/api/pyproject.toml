@@ -13,6 +13,7 @@ dependencies = [
   "passlib[argon2,bcrypt]>=1.7.4",
   "pyjwt>=2.13.0",
   "pwdlib[argon2]>=0.3.0",
+  "python-multipart>=0.0.20",
 ]
 
 [dependency-groups]
