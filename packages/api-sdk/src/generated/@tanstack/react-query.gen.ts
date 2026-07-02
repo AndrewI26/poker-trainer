@@ -3,14 +3,14 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getHealth, getUsers, getUsersMe, type Options, postAuthToken, postUsers } from '../sdk.gen';
-import type { GetHealthData, GetHealthResponse, GetUsersData, GetUsersMeData, GetUsersResponse, PostAuthTokenData, PostAuthTokenError, PostUsersData, PostUsersError, PostUsersResponse } from '../types.gen';
+import { getAuthMe, getHealth, getUsers, type Options, postAuthToken, postUsers } from '../sdk.gen';
+import type { GetAuthMeData, GetAuthMeResponse, GetHealthData, GetHealthResponse, GetUsersData, GetUsersResponse, PostAuthTokenData, PostAuthTokenError, PostAuthTokenResponse, PostUsersData, PostUsersError, PostUsersResponse } from '../types.gen';
 
 /**
  * Login
  */
-export const postAuthTokenMutation = (options?: Partial<Options<PostAuthTokenData>>): UseMutationOptions<unknown, PostAuthTokenError, Options<PostAuthTokenData>> => {
-    const mutationOptions: UseMutationOptions<unknown, PostAuthTokenError, Options<PostAuthTokenData>> = {
+export const postAuthTokenMutation = (options?: Partial<Options<PostAuthTokenData>>): UseMutationOptions<PostAuthTokenResponse, PostAuthTokenError, Options<PostAuthTokenData>> => {
+    const mutationOptions: UseMutationOptions<PostAuthTokenResponse, PostAuthTokenError, Options<PostAuthTokenData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postAuthToken({
                 ...options,
@@ -56,6 +56,24 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     return [params];
 };
 
+export const getAuthMeQueryKey = (options?: Options<GetAuthMeData>) => createQueryKey('getAuthMe', options);
+
+/**
+ * Me
+ */
+export const getAuthMeOptions = (options?: Options<GetAuthMeData>) => queryOptions<GetAuthMeResponse, DefaultError, GetAuthMeResponse, ReturnType<typeof getAuthMeQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthMe({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthMeQueryKey(options)
+});
+
 export const getUsersQueryKey = (options?: Options<GetUsersData>) => createQueryKey('getUsers', options);
 
 /**
@@ -90,24 +108,6 @@ export const postUsersMutation = (options?: Partial<Options<PostUsersData>>): Us
     };
     return mutationOptions;
 };
-
-export const getUsersMeQueryKey = (options?: Options<GetUsersMeData>) => createQueryKey('getUsersMe', options);
-
-/**
- * Read Users Me
- */
-export const getUsersMeOptions = (options?: Options<GetUsersMeData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getUsersMeQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getUsersMe({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getUsersMeQueryKey(options)
-});
 
 export const getHealthQueryKey = (options?: Options<GetHealthData>) => createQueryKey('getHealth', options);
 

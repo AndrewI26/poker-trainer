@@ -45,6 +45,20 @@ export type HttpValidationError = {
 };
 
 /**
+ * Token
+ */
+export type Token = {
+    /**
+     * Access Token
+     */
+    access_token: string;
+    /**
+     * Token Type
+     */
+    token_type: string;
+};
+
+/**
  * UserCreate
  */
 export type UserCreate = {
@@ -136,8 +150,26 @@ export type PostAuthTokenResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: Token;
 };
+
+export type PostAuthTokenResponse = PostAuthTokenResponses[keyof PostAuthTokenResponses];
+
+export type GetAuthMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/me';
+};
+
+export type GetAuthMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserPublic;
+};
+
+export type GetAuthMeResponse = GetAuthMeResponses[keyof GetAuthMeResponses];
 
 export type GetUsersData = {
     body?: never;
@@ -181,20 +213,6 @@ export type PostUsersResponses = {
 };
 
 export type PostUsersResponse = PostUsersResponses[keyof PostUsersResponses];
-
-export type GetUsersMeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/users/me';
-};
-
-export type GetUsersMeResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
 
 export type GetHealthData = {
     body?: never;

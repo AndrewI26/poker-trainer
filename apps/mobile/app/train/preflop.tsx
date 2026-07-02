@@ -4,6 +4,7 @@ import {
   type EvaluationResult,
   evaluateDecision,
   generateScenario,
+  type PreflopAction,
   type PreflopScenario,
 } from "@poker-trainer/poker-engine";
 
@@ -38,9 +39,11 @@ export default function PreflopScreen() {
   );
   const [phase, setPhase] = useState<QuizPhase>("quiz");
   const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [heroDecision, setHeroDecision] = useState<Decision | null>(null);
   const [revealedCount, setRevealedCount] = useState(0);
   const [blindRevealedCount, setBlindRevealedCount] = useState(2);
   const [cardsTrigger, setCardsTrigger] = useState(0);
+  const [showResultModal, setShowResultModal] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function stopAutoReveal() {
@@ -92,7 +95,10 @@ export default function PreflopScreen() {
   function handleDecision(decision: Decision) {
     const evaluation = evaluateDecision(scenario, decision);
     setResult(evaluation);
+    setHeroDecision(decision);
+    setRevealedCount(scenario.actionsBefore.length + 1);
     setPhase("result");
+    setShowResultModal(true);
   }
 
   function nextHand() {
@@ -100,8 +106,23 @@ export default function PreflopScreen() {
     setBlindRevealedCount(2);
     setScenario(generateScenario());
     setResult(null);
+    setHeroDecision(null);
     setPhase("quiz");
+    setShowResultModal(false);
   }
+
+  const heroAction: PreflopAction | null = heroDecision
+    ? {
+        position: scenario.heroPosition,
+        action:
+          heroDecision.type === "call"
+            ? "limp"
+            : heroDecision.type === "raise"
+              ? "raise"
+              : heroDecision.type,
+        sizeBB: heroDecision.type === "raise" ? heroDecision.sizeBB : null,
+      }
+    : null;
 
   const { potState } = scenario;
   const facingRaise = potState.callAmountBB > 1;
@@ -115,13 +136,6 @@ export default function PreflopScreen() {
       : result?.verdict === "acceptable"
         ? theme.palette.gold[500]
         : t.sentiment.negative;
-
-  const verdictBg =
-    result?.verdict === "correct"
-      ? t.sentiment.positiveBg
-      : result?.verdict === "acceptable"
-        ? theme.palette.gold[800]
-        : t.sentiment.negativeBg;
 
   return (
     <View style={{ flex: 1, backgroundColor: t.assets.bgPage }}>
@@ -163,12 +177,13 @@ export default function PreflopScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={{ flex: 1, paddingTop: theme.spacing.xl }}>
+      <View style={{ flex: 1, paddingTop: theme.spacing.lg }}>
         <PokerTable
           scenario={scenario}
           revealedCount={revealedCount}
           blindRevealedCount={blindRevealedCount}
           cardsTrigger={cardsTrigger}
+          heroAction={heroAction}
         />
 
         <View style={{ height: theme.spacing.xs }} />
@@ -179,17 +194,19 @@ export default function PreflopScreen() {
           revealedCount={revealedCount}
           blindRevealedCount={blindRevealedCount}
           onSeek={seekTo}
+          heroAction={heroAction}
         />
 
         {phase === "result" && result && (
           <ResultCard
+            visible={showResultModal}
+            onRequestClose={() => setShowResultModal(false)}
             verdict={result.verdict}
             explanation={result.explanation}
             recommendedActionLabel={preflopActionLabel(
               result.recommendedAction,
             )}
             verdictColor={verdictColor}
-            verdictBg={verdictBg}
           />
         )}
 
@@ -200,10 +217,6 @@ export default function PreflopScreen() {
 
       <View
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
           paddingBottom: insets.bottom + theme.spacing.sm,
           paddingHorizontal: theme.spacing.xs,
           paddingTop: theme.spacing.sm,
@@ -253,7 +266,18 @@ export default function PreflopScreen() {
             </View>
           </>
         ) : (
-          <Button label="Next Hand" variant="secondary" onPress={nextHand} />
+          <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <Button
+                label="Show feedback"
+                variant="secondary"
+                onPress={() => setShowResultModal(true)}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button label="Next Hand" variant="primary" onPress={nextHand} />
+            </View>
+          </View>
         )}
       </View>
     </View>

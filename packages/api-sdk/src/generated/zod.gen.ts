@@ -15,6 +15,14 @@ export const zBodyLoginAuthTokenPost = z.object({
 });
 
 /**
+ * Token
+ */
+export const zToken = z.object({
+    access_token: z.string(),
+    token_type: z.string()
+});
+
+/**
  * UserCreate
  */
 export const zUserCreate = z.object({
@@ -53,6 +61,16 @@ export const zHttpValidationError = z.object({
 });
 
 export const zPostAuthTokenBody = zBodyLoginAuthTokenPost;
+
+/**
+ * Successful Response
+ */
+export const zPostAuthTokenResponse = zToken;
+
+/**
+ * Successful Response
+ */
+export const zGetAuthMeResponse = zUserPublic;
 
 /**
  * Response List Users Users  Get

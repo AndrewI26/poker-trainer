@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from app.dependencies.db import get_db
-from app.models.users import User
+from app.models.users import User, UserRole
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
@@ -38,12 +38,12 @@ def verify_password(plain_password: str, hashed_password: str):
     return password_hash.verify(plain_password, hashed_password)
 
 
-def get_user(db: Session, email: str) -> User | None:
-    return db.scalar(select(User).where(User.email == email))
+def get_user(db: Session, username: str) -> User | None:
+    return db.scalar(select(User).where(User.username == username))
 
 
-def authenticate_user(db: Session, email: str, password):
-    user = get_user(db, email)
+def authenticate_user(db: Session, username: str, password):
+    user = get_user(db, username)
     if not user:
         verify_password(password, DUMMY_HASH)
         return False
@@ -75,9 +75,18 @@ async def get_current_user(
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+_ROLE_LEVELS = {UserRole.FREE: 0, UserRole.PREMIUM: 1, UserRole.ADMIN: 2}
+
+
+def require_role(minimum: UserRole):
+    def dependency(
+        current_user: Annotated[User, Depends(get_current_user)],
+    ) -> User:
+        if _ROLE_LEVELS[current_user.role] < _ROLE_LEVELS[minimum]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+
+    return dependency

@@ -14,6 +14,7 @@ dependencies = [
   "pyjwt>=2.13.0",
   "pwdlib[argon2]>=0.3.0",
   "python-multipart>=0.0.20",
+  "email-validator>=2.3.0",
 ]
 
 [dependency-groups]

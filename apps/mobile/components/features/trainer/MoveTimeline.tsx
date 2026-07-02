@@ -25,15 +25,17 @@ export function MoveTimeline({
   revealedCount,
   blindRevealedCount,
   onSeek,
+  heroAction,
 }: {
   actions: PreflopAction[];
   scenario: TableScenario;
   revealedCount: number;
   blindRevealedCount: number;
   onSeek: (index: number, blindRevealedCount?: number) => void;
+  heroAction?: PreflopAction | null;
 }) {
   const { t } = useTheme();
-  if (actions.length === 0) return null;
+  if (actions.length === 0 && !heroAction) return null;
 
   const sbSeat = scenario.seats.find((s) => s.position === "SB");
   const bbSeat = scenario.seats.find((s) => s.position === "BB");
@@ -53,13 +55,18 @@ export function MoveTimeline({
       ? [{ position: "BB" as const, action: "limp" as const, sizeBB: 1 }]
       : []),
   ];
-  const allActions = [...blindActions, ...actions];
+  const allActions = [
+    ...blindActions,
+    ...actions,
+    ...(heroAction ? [heroAction] : []),
+  ];
   const blindCount = blindActions.length;
+  const totalActionSteps = actions.length + (heroAction ? 1 : 0);
 
   const globalIndex = blindRevealedCount + revealedCount;
   const canBack = globalIndex > 1;
   const canForward =
-    blindRevealedCount < blindCount || revealedCount < actions.length;
+    blindRevealedCount < blindCount || revealedCount < totalActionSteps;
 
   return (
     <View

@@ -4,8 +4,8 @@ import * as z from 'zod';
 
 import { type Client, type Options as Options2, type RequestResult, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { GetHealthData, GetHealthResponses, GetUsersData, GetUsersMeData, GetUsersMeResponses, GetUsersResponses, PostAuthTokenData, PostAuthTokenErrors, PostAuthTokenResponses, PostUsersData, PostUsersErrors, PostUsersResponses } from './types.gen';
-import { zGetHealthResponse, zGetUsersResponse, zPostAuthTokenBody, zPostUsersBody, zPostUsersResponse } from './zod.gen';
+import type { GetAuthMeData, GetAuthMeResponses, GetHealthData, GetHealthResponses, GetUsersData, GetUsersResponses, PostAuthTokenData, PostAuthTokenErrors, PostAuthTokenResponses, PostUsersData, PostUsersErrors, PostUsersResponses } from './types.gen';
+import { zGetAuthMeResponse, zGetHealthResponse, zGetUsersResponse, zPostAuthTokenBody, zPostAuthTokenResponse, zPostUsersBody, zPostUsersResponse } from './zod.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -31,12 +31,28 @@ export const postAuthToken = <ThrowOnError extends boolean = false>(options: Opt
         path: z.never().optional(),
         query: z.never().optional()
     }).parseAsync(data),
+    responseValidator: async (data) => await zPostAuthTokenResponse.parseAsync(data),
     url: '/auth/token',
     ...options,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         ...options.headers
     }
+});
+
+/**
+ * Me
+ */
+export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>): RequestResult<GetAuthMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAuthMeResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: z.never().optional(),
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zGetAuthMeResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/auth/me',
+    ...options
 });
 
 /**
@@ -69,20 +85,6 @@ export const postUsers = <ThrowOnError extends boolean = false>(options: Options
         'Content-Type': 'application/json',
         ...options.headers
     }
-});
-
-/**
- * Read Users Me
- */
-export const getUsersMe = <ThrowOnError extends boolean = false>(options?: Options<GetUsersMeData, ThrowOnError>): RequestResult<GetUsersMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetUsersMeResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: z.never().optional(),
-        path: z.never().optional(),
-        query: z.never().optional()
-    }).parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users/me',
-    ...options
 });
 
 /**
