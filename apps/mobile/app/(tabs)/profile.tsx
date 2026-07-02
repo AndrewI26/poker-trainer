@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Text, TextInput, View } from "react-native";
+import { useAuth } from "@/auth/AuthContext";
 import { PreflopChart } from "@/components/features/PreflopChart";
 import { ProfileHeader } from "@/components/features/ProfileHeader";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -9,11 +11,79 @@ import theme from "@/theme/theme";
 
 export default function ProfileScreen() {
   const { t } = useTheme();
+  const { login, user } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleLogin() {
+    setError(null);
+    try {
+      await login(email, password);
+    } catch {
+      setError("Invalid email or password");
+    }
+  }
+
+  const inputStyle = {
+    backgroundColor: t.assets.bgDisabled,
+    borderRadius: theme.borderRadius.s,
+    padding: theme.spacing.sm,
+    color: t.assets.text,
+    fontFamily: theme.fontFamily.regular,
+    fontSize: theme.fontSize.body,
+  };
 
   return (
     <ScreenWrapper>
+      <Label>Login</Label>
+      <Card style={{ gap: theme.spacing.sm }}>
+        {user ? (
+          <Text
+            style={{
+              color: t.assets.text,
+              fontFamily: theme.fontFamily.regular,
+            }}
+          >
+            Logged in as {user.email}
+          </Text>
+        ) : (
+          <>
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor={t.assets.subtext}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              style={inputStyle}
+            />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor={t.assets.subtext}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              style={inputStyle}
+            />
+            {error && (
+              <Text
+                style={{
+                  color: "#ef4444",
+                  fontFamily: theme.fontFamily.regular,
+                  fontSize: theme.fontSize.xs,
+                }}
+              >
+                {error}
+              </Text>
+            )}
+            <Button label="Login" onPress={handleLogin} />
+          </>
+        )}
+      </Card>
+
       <ProfileHeader
-        name="You"
+        name={user?.username ?? "Loading"}
         memberSince="2024"
         rank="#4"
         drillsCompleted={17}

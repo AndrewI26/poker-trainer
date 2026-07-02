@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     api_port: int
     api_title: str = "Poker Trainer API"
 
+
 @lru_cache
 def get_settings():
-    return Settings() # type: ignore
+    return Settings()  # type: ignore

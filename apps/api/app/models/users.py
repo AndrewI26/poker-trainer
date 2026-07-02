@@ -1,8 +1,16 @@
-from datetime import datetime
+import enum
 from uuid import UUID, uuid4
-from sqlalchemy import UUID as SQLAlchemyUUID, DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+
+import email_validator
+from sqlalchemy import UUID as SQLAlchemyUUID, Enum as SQLAlchemyEnum, String
+from sqlalchemy.orm import Mapped, mapped_column, validates
 from app.db import Base
+
+
+class UserRole(str, enum.Enum):
+    FREE = "free"
+    PREMIUM = "premium"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -14,16 +22,19 @@ class User(Base):
         default=uuid4,
     )
 
-    email: Mapped[str] = mapped_column(
+    username: Mapped[str] = mapped_column(
         String(255),
         unique=True,
         nullable=False,
-        index=True,
     )
 
-    username: Mapped[str] = mapped_column(
-        String(50),
-        unique=True,
+    first_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    last_name: Mapped[str] = mapped_column(
+        String(100),
         nullable=False,
     )
 
@@ -32,15 +43,16 @@ class User(Base):
         nullable=False,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+    role: Mapped[UserRole] = mapped_column(
+        SQLAlchemyEnum(
+            UserRole, name="user_role", values_callable=lambda e: [m.value for m in e]
+        ),
         nullable=False,
+        default=UserRole.FREE,
+        server_default=UserRole.FREE.value,
     )
 
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
+    @validates("username")
+    def validate_username(self, key: str, value: str) -> str:
+        email_validator.validate_email(value, check_deliverability=False)
+        return value

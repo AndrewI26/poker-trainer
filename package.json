@@ -19,7 +19,7 @@
     "db:shell": "docker compose exec db sh",
     "db:psql": "docker compose exec db psql -U postgres -d poker_trainer",
     "db:logs": "docker compose logs -f db",
-    "db:up": "docker compose up -d db",
+    "db:up": "docker compose -f docker-compose.dev.yml up -d",
     "lint": "bun run lint:ts && bun run lint:api",
     "lint:ts": "biome lint apps/web apps/mobile packages/",
     "lint:api": "cd apps/api && uv run ruff check .",

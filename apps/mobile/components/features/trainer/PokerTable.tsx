@@ -20,9 +20,10 @@ export const TOKEN_SIZE = 48;
 const CARDS_REVEAL_DELAY_MS = 500;
 const TOKEN_SLOT_W = TOKEN_SIZE + 32;
 const TOKEN_SLOT_H = TOKEN_SIZE + 60;
-const CIRCLE_SCALE = 0.88;
-const ARC_HEIGHT_RATIO = 0.44;
+const CIRCLE_SCALE = 1;
+const ARC_HEIGHT_RATIO = CIRCLE_SCALE / 2;
 const EDGE_MARGIN = 12;
+const COMMUNITY_CARD_W_RATIO = 0.16;
 
 function suitColor(suit: Suit) {
   if (suit === "hearts" || suit === "diamonds") return "#cc0000";
@@ -118,46 +119,55 @@ function HeroCards({
   }, [trigger, translateY, opacity]);
 
   return (
-    <Animated.View
-      style={{
-        flexDirection: "row",
-        gap: 3,
-        marginTop: 16,
-        opacity,
-        transform: [{ translateY }],
-      }}
-    >
+    <View style={{ flexDirection: "row", gap: 3, marginTop: 16 }}>
       {holeCards.map((card) => (
         <View
           key={`${card.rank}${card.suit}`}
-          style={{
-            backgroundColor: "#ffffff",
-            borderRadius: theme.borderRadius.xs,
-            borderWidth: 1,
-            borderColor: "#e5e5e5",
-            paddingHorizontal: 7,
-            paddingVertical: 5,
-            alignItems: "center",
-          }}
+          style={{ width: 34, height: 46 }}
         >
-          <Text
+          <View
             style={{
-              fontFamily: theme.fontFamily.bold,
-              fontSize: theme.fontSize.h6,
-              color: suitColor(card.suit),
-              lineHeight: theme.fontSize.h6 * 1.1,
+              position: "absolute",
+              width: 34,
+              height: 46,
+              borderRadius: theme.borderRadius.xs,
+              backgroundColor: "rgba(255,255,255,0.07)",
+              borderWidth: 1.5,
+              borderColor: "rgba(255,255,255,0.12)",
+            }}
+          />
+          <Animated.View
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: theme.borderRadius.xs,
+              borderWidth: 1,
+              borderColor: "#e5e5e5",
+              paddingHorizontal: 7,
+              paddingVertical: 5,
+              alignItems: "center",
+              opacity,
+              transform: [{ translateY }],
             }}
           >
-            {card.rank}
-          </Text>
-          <MaterialCommunityIcons
-            name={suitIcon(card.suit)}
-            size={14}
-            color={suitColor(card.suit)}
-          />
+            <Text
+              style={{
+                fontFamily: theme.fontFamily.bold,
+                fontSize: theme.fontSize.h6,
+                color: suitColor(card.suit),
+                lineHeight: theme.fontSize.h6 * 1.1,
+              }}
+            >
+              {card.rank}
+            </Text>
+            <MaterialCommunityIcons
+              name={suitIcon(card.suit)}
+              size={14}
+              color={suitColor(card.suit)}
+            />
+          </Animated.View>
         </View>
       ))}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -232,12 +242,14 @@ export function PokerTable({
   blindRevealedCount,
   cardsTrigger,
   communityCards,
+  heroAction,
 }: {
   scenario: TableScenario;
   revealedCount: number;
   blindRevealedCount: number;
   cardsTrigger: number;
   communityCards?: Card[];
+  heroAction?: PreflopAction | null;
 }) {
   const { width } = useWindowDimensions();
 
@@ -288,12 +300,18 @@ export function PokerTable({
     return { seat, x, y };
   });
 
+  const lowestPlayerY = positions.length
+    ? Math.max(...positions.map((p) => p.y))
+    : arcH * 0.72;
+  const communityCardsTop = lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
+  const communityCardW = width * COMMUNITY_CARD_W_RATIO;
+  const communityCardH = communityCardW * (50 / 36);
+
   const topPad = 40;
-  const rectExtH = TOKEN_SLOT_H + 140;
-  const containerH = topPad + arcH + rectExtH + 16;
+  const rectExtH = TOKEN_SLOT_H + 300;
 
   return (
-    <View style={{ width, height: containerH }}>
+    <View style={{ width, flex: 1 }}>
       <View
         style={{
           position: "absolute",
@@ -326,7 +344,7 @@ export function PokerTable({
             height: circleD - 12,
             borderRadius: circleR - 6,
             borderWidth: 2,
-            borderColor: "rgba(255,255,255,0.06)",
+            borderColor: TABLE_BORDER,
             backgroundColor: "transparent",
           }}
         />
@@ -366,12 +384,11 @@ export function PokerTable({
       <View
         style={{
           position: "absolute",
-          top: topPad + arcH * 0.72,
-          left: 0,
-          right: 0,
+          top: topPad + communityCardsTop,
+          width: "100%",
+          paddingHorizontal: 15,
           flexDirection: "row",
-          justifyContent: "center",
-          gap: 6,
+          justifyContent: "space-between",
         }}
       >
         {["c1", "c2", "c3", "c4", "c5"].map((id, i) => {
@@ -380,8 +397,8 @@ export function PokerTable({
             <View
               key={id}
               style={{
-                width: 36,
-                height: 50,
+                width: communityCardW,
+                height: communityCardH,
                 borderRadius: 5,
                 backgroundColor: "#ffffff",
                 borderWidth: 1,
@@ -412,12 +429,12 @@ export function PokerTable({
             <View
               key={id}
               style={{
-                width: 36,
-                height: 50,
+                width: communityCardW,
+                height: communityCardH,
                 borderRadius: 5,
-                backgroundColor: "rgba(255,255,255,0.07)",
+                backgroundColor: "rgba(255, 255, 255, 0.01)",
                 borderWidth: 1.5,
-                borderColor: "rgba(255,255,255,0.12)",
+                borderColor: "rgba(255, 255, 255, 0.03)",
               }}
             />
           );
@@ -507,38 +524,35 @@ export function PokerTable({
             : heroSeat.position === "BB" && blindRevealedCount >= 2
               ? { position: "BB" as const, action: "limp" as const, sizeBB: 1 }
               : null;
+        const heroActionRevealed =
+          Boolean(heroAction) && revealedCount > actionsBefore.length;
+        const displayHeroAction = heroActionRevealed
+          ? (heroAction ?? null)
+          : heroBlindAction;
         return (
-          <>
-            {heroBlindAction && (
-              <View
-                style={{
-                  position: "absolute",
-                  left: width / 2 - TOKEN_SLOT_W / 2,
-                  top: topPad + arcH + 110 - 36,
-                  alignItems: "center",
-                  width: TOKEN_SLOT_W,
-                }}
-              >
-                <ChipBet action={heroBlindAction} />
+          <View
+            style={{
+              position: "absolute",
+              left: width / 2 - TOKEN_SLOT_W / 2,
+              bottom: 16,
+              width: TOKEN_SLOT_W,
+              alignItems: "center",
+            }}
+          >
+            {displayHeroAction && (
+              <View style={{ marginBottom: 8 }}>
+                <ChipBet action={displayHeroAction} />
               </View>
             )}
-            <View
-              style={{
-                position: "absolute",
-                left: width / 2 - TOKEN_SLOT_W / 2,
-                top: topPad + arcH + 110,
-              }}
-            >
-              <PlayerToken
-                key={holeCards.map((c) => `${c.rank}${c.suit}`).join("")}
-                seat={heroSeat}
-                action={heroBlindAction}
-                holeCards={holeCards}
-                cardsTrigger={cardsTrigger}
-                suppressBet
-              />
-            </View>
-          </>
+            <PlayerToken
+              key={holeCards.map((c) => `${c.rank}${c.suit}`).join("")}
+              seat={heroSeat}
+              action={displayHeroAction}
+              holeCards={holeCards}
+              cardsTrigger={cardsTrigger}
+              suppressBet
+            />
+          </View>
         );
       })()}
     </View>

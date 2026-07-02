@@ -4,7 +4,6 @@ export default defineConfig({
   input: "http://localhost:8000/openapi.json",
   output: {
     path: "packages/api-sdk/src/generated",
-    postProcess: ["biome:format"],
   },
   plugins: [
     "@hey-api/client-fetch",
@@ -12,6 +11,7 @@ export default defineConfig({
     {
       name: "@hey-api/sdk",
       validator: true,
+      operations: { nesting: "id" },
     },
     {
       name: "@tanstack/react-query",
