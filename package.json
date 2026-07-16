@@ -34,7 +34,7 @@
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "bun run typecheck"
+    "pre-commit": "bun run format && bun run lint && bun run typecheck"
   },
   "overrides": {
     "react": "19.1.0",

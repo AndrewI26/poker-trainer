@@ -93,7 +93,6 @@ export default function PreflopScreen() {
         const next = prev + 1;
         if (next >= total) {
           if (intervalRef.current) clearInterval(intervalRef.current);
-          // Fire the card trigger at the exact moment the last reveal lands.
           setCardsTrigger((n) => n + 1);
         }
         return next;
