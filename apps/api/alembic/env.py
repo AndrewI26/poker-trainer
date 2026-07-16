@@ -1,11 +1,16 @@
+import importlib
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import create_engine
 
 from app.config import get_settings
 from app.db import Base
-import app.models  # noqa: F401
+
+for _path in (Path(__file__).parent.parent / "app" / "models").glob("*.py"):
+    if not _path.name.startswith("_"):
+        importlib.import_module(f"app.models.{_path.stem}")
 
 config = context.config
 

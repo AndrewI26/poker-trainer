@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { postPreflop } from "@poker-trainer/api-sdk";
 import {
   type Decision,
   type EvaluationResult,
@@ -6,7 +7,20 @@ import {
   generateScenario,
   type PreflopAction,
   type PreflopScenario,
+  type Suit,
 } from "@poker-trainer/poker-engine";
+import { useAuth } from "@/auth/AuthContext";
+
+const SUIT_ABBREV: Record<Suit, string> = {
+  spades: "s",
+  hearts: "h",
+  diamonds: "d",
+  clubs: "c",
+};
+
+function cardString(card: PreflopScenario["holeCards"][number]): string {
+  return `${card.rank}${SUIT_ABBREV[card.suit]}`;
+}
 
 function preflopActionLabel(action: Decision): string {
   if (action.type === "fold") return "Fold";
@@ -31,6 +45,7 @@ type QuizPhase = "quiz" | "result";
 
 export default function PreflopScreen() {
   const { t } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -99,6 +114,18 @@ export default function PreflopScreen() {
     setRevealedCount(scenario.actionsBefore.length + 1);
     setPhase("result");
     setShowResultModal(true);
+
+    if (user) {
+      postPreflop({
+        body: {
+          table_size: scenario.tableSize,
+          hero_position: scenario.heroPosition,
+          hero_card_1: cardString(scenario.holeCards[0]),
+          hero_card_2: cardString(scenario.holeCards[1]),
+          move: decision.type,
+        },
+      });
+    }
   }
 
   function nextHand() {

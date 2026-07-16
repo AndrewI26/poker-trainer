@@ -95,7 +95,7 @@ def test_delete_account_removes_the_user(
 def test_delete_account_cascades_preflop_responses(
     client: TestClient, db_session: Session
 ) -> None:
-    from app.models.preflop_responses import PreflopResponse
+    from app.models.preflop import PreflopResponse
 
     signup(client, "deleteme@example.com")
     token = login(client, "deleteme@example.com")
