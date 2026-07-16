@@ -22,9 +22,9 @@ bun run dev:web         # Vite dev server
 bun run dev:mobile      # Expo
 
 # Code quality
-bun run check           # Biome + Ruff (lint + format, auto-fix) — run this before committing
-bun run check:ts        # Biome only
-bun run check:api       # Ruff only
+bun run typecheck           # Biome + Ruff (lint + format, auto-fix) — run this before committing
+bun run typecheck:ts        # Biome only
+bun run typecheck:api       # Ruff only
 bun run lint            # lint only (no writes)
 bun run format          # format only (writes files)
 
