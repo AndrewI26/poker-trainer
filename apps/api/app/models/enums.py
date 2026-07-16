@@ -3,7 +3,7 @@ import enum
 from sqlalchemy import Enum as SQLAlchemyEnum
 
 
-class Position(str, enum.Enum):
+class Position(enum.StrEnum):
     UTG = "UTG"
     UTG_PLUS_1 = "UTG+1"
     UTG_PLUS_2 = "UTG+2"
@@ -15,14 +15,14 @@ class Position(str, enum.Enum):
     BB = "BB"
 
 
-class Move(str, enum.Enum):
+class Move(enum.StrEnum):
     FOLD = "fold"
     CALL = "call"
     RAISE = "raise"
     ALLIN = "allin"
 
 
-class MoveVerdict(str, enum.Enum):
+class MoveVerdict(enum.StrEnum):
     CORRECT = "correct"
     ACCEPTABLE = "acceptable"
     INCORRECT = "incorrect"

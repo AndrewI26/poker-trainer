@@ -2,12 +2,15 @@ import enum
 from uuid import UUID, uuid4
 
 import email_validator
-from sqlalchemy import UUID as SQLAlchemyUUID, Enum as SQLAlchemyEnum, String
+from sqlalchemy import UUID as SQLAlchemyUUID
+from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, validates
+
 from app.db import Base
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     FREE = "free"
     PREMIUM = "premium"
     ADMIN = "admin"

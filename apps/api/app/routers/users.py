@@ -1,5 +1,10 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from app.dependencies.auth import (
     get_current_user,
     hash_password,
@@ -9,10 +14,6 @@ from app.dependencies.auth import (
 from app.dependencies.db import get_db
 from app.models.users import User, UserRole
 from app.schemas.users import UserCreate, UserDelete, UserPublic
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -36,12 +37,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
         db.add(new_user)
         db.commit()
-    except IntegrityError:
+    except IntegrityError as err:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="A user with that username already exists",
-        )
+        ) from err
     db.refresh(new_user)
     return new_user
 

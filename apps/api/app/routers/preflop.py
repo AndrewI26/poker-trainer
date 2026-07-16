@@ -1,4 +1,5 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -7,7 +8,6 @@ from app.dependencies.db import get_db
 from app.models.preflop import PreflopResponse
 from app.models.users import User
 from app.schemas.preflop import PreflopResponseCreate, PreflopResponsePublic
-
 
 router = APIRouter(prefix="/preflop", tags=["preflop"])
 

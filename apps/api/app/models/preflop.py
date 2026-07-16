@@ -1,30 +1,34 @@
 import enum
 from uuid import UUID, uuid4
 
-from app.models.card import CardType
-from app.models.enums import (
-    MoveVerdict,
-    MoveVerdictType,
-    Position,
-    PositionType,
-    Move,
-    MoveType,
-)
 from sqlalchemy import (
     UUID as SQLAlchemyUUID,
+)
+from sqlalchemy import (
     CheckConstraint,
-    Enum as SQLAlchemyEnum,
     ForeignKey,
     SmallInteger,
     Text,
 )
+from sqlalchemy import (
+    Enum as SQLAlchemyEnum,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.models.card import CardType
+from app.models.enums import (
+    Move,
+    MoveType,
+    MoveVerdict,
+    MoveVerdictType,
+    Position,
+    PositionType,
+)
 from app.models.users import User
 
 
-class PreflopScenario(str, enum.Enum):
+class PreflopScenario(enum.StrEnum):
     OPEN = "open"
     VS_OPEN = "vs_open"
     THREEBET = "3bet"

@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from app.config import get_settings
 from sqlalchemy import DateTime, create_engine, func
-from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+
+from app.config import get_settings
 
 settings = get_settings()
 

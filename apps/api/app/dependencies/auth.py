@@ -1,14 +1,15 @@
 from typing import Annotated
 
-from app.dependencies.db import get_db
-from app.models.users import User, UserRole
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from pwdlib import PasswordHash
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from app.dependencies.db import get_db
+from app.models.users import User, UserRole
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -67,8 +68,8 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except jwt.InvalidTokenError:
-        raise credentials_exception
+    except jwt.InvalidTokenError as err:
+        raise credentials_exception from err
     user = get_user(db, token_data.username)  # type: ignore
     if user is None:
         raise credentials_exception

@@ -6,14 +6,14 @@ from sqlalchemy import String
 from sqlalchemy.types import TypeDecorator
 
 
-class Suit(str, enum.Enum):
+class Suit(enum.StrEnum):
     SPADES = "s"
     HEARTS = "h"
     DIAMONDS = "d"
     CLUBS = "c"
 
 
-class Rank(str, enum.Enum):
+class Rank(enum.StrEnum):
     TWO = "2"
     THREE = "3"
     FOUR = "4"
@@ -60,8 +60,8 @@ def _validate_card(v: str) -> str:
     try:
         Rank(v[0])
         Suit(v[1])
-    except ValueError:
-        raise ValueError(f"'{v}' is not a valid card (e.g. 'Ah', 'Ks')")
+    except ValueError as err:
+        raise ValueError(f"'{v}' is not a valid card (e.g. 'Ah', 'Ks')") from err
     return v
 
 
