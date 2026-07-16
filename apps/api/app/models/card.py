@@ -1,5 +1,7 @@
 import enum
+from typing import Annotated
 
+from pydantic import AfterValidator, BeforeValidator
 from sqlalchemy import String
 from sqlalchemy.types import TypeDecorator
 
@@ -50,6 +52,20 @@ def to_hand_notation(card1: Card, card2: Card) -> str:
         return f"{high.rank.value}{low.rank.value}"
     suffix = "s" if card1.suit == card2.suit else "o"
     return f"{high.rank.value}{low.rank.value}{suffix}"
+
+
+def _validate_card(v: str) -> str:
+    if len(v) != 2:
+        raise ValueError(f"'{v}' is not a valid card (e.g. 'Ah', 'Ks')")
+    try:
+        Rank(v[0])
+        Suit(v[1])
+    except ValueError:
+        raise ValueError(f"'{v}' is not a valid card (e.g. 'Ah', 'Ks')")
+    return v
+
+
+CardStr = Annotated[str, BeforeValidator(str), AfterValidator(_validate_card)]
 
 
 class CardType(TypeDecorator):

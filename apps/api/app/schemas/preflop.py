@@ -1,28 +1,18 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.card import Rank, Suit
+from app.models.card import CardStr
 from app.models.enums import Move, MoveVerdict, Position
 
 
 class PreflopResponseCreate(BaseModel):
     table_size: int = Field(ge=6, le=9)
     hero_position: Position
-    hero_card_1: str = Field(min_length=2, max_length=2)
-    hero_card_2: str = Field(min_length=2, max_length=2)
+    hero_card_1: CardStr
+    hero_card_2: CardStr
     move: Move
-
-    @field_validator("hero_card_1", "hero_card_2")
-    @classmethod
-    def valid_card(cls, v: str) -> str:
-        try:
-            Rank(v[0])
-            Suit(v[1])
-        except ValueError:
-            raise ValueError(f"'{v}' is not a valid card (e.g. 'Ah', 'Ks')")
-        return v
 
 
 class PreflopResponsePublic(BaseModel):
@@ -32,14 +22,8 @@ class PreflopResponsePublic(BaseModel):
     user_id: UUID
     table_size: int
     hero_position: Position
-    hero_card_1: str
-    hero_card_2: str
-
-    @field_validator("hero_card_1", "hero_card_2", mode="before")
-    @classmethod
-    def card_to_str(cls, v: object) -> str:
-        return str(v)
-
+    hero_card_1: CardStr
+    hero_card_2: CardStr
     move: Move
     verdict: MoveVerdict | None
     explanation: str
