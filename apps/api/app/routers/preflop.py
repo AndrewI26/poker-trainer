@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status  # noqa: F401
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_user
