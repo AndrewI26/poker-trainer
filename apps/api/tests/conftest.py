@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
@@ -26,7 +28,7 @@ def db_engine():
 
 
 @pytest.fixture
-def client(db_engine) -> TestClient:
+def client(db_engine) -> Generator[TestClient, None, None]:
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=db_engine
     )
@@ -45,7 +47,7 @@ def client(db_engine) -> TestClient:
 
 
 @pytest.fixture
-def db_session(db_engine) -> Session:
+def db_session(db_engine) -> Generator[Session, None, None]:
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=db_engine
     )
@@ -61,7 +63,7 @@ def signup(
     username: str,
     first_name: str = "Test",
     last_name: str = "User",
-    password: str = "password123",
+    password: str = "Password1!",
 ):
     response = client.post(
         "/users/",
@@ -70,13 +72,14 @@ def signup(
             "first_name": first_name,
             "last_name": last_name,
             "password": password,
+            "confirm_password": password,
         },
     )
     assert response.status_code == 201
     return response.json()
 
 
-def login(client: TestClient, username: str, password: str = "password123") -> str:
+def login(client: TestClient, username: str, password: str = "Password1!") -> str:
     response = client.post(
         "/auth/token",
         data={"username": username, "password": password},

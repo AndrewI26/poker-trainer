@@ -14,3 +14,5 @@ __pycache__/
 *.tsbuildinfo
 apps/api/.venv/
 .claude/
+packages/api-sdk/src/generated/
+packages/api-sdk/

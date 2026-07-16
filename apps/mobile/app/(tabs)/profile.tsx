@@ -45,7 +45,7 @@ export default function ProfileScreen() {
               fontFamily: theme.fontFamily.regular,
             }}
           >
-            Logged in as {user.email}
+            Logged in as {user.username}
           </Text>
         ) : (
           <>
