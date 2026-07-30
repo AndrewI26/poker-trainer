@@ -143,10 +143,6 @@ export interface ScenarioGeneratorOptions {
 
 export type Street = "flop" | "turn" | "river";
 
-export type PostflopVillainAction =
-  | { action: "check" }
-  | { action: "bet"; sizeBB: number };
-
 export type PostflopDecision =
   | { type: "fold" }
   | { type: "call" }
@@ -161,20 +157,54 @@ export type PostflopHandStrength =
   | "draw"
   | "weak";
 
-export interface PostflopScenario extends TableScenario {
+export type BoardTexture = "dry" | "semi-wet" | "wet" | "paired" | "monotone";
+
+export type BetCount = 0 | 1 | 2;
+
+export type RelativeAction =
+  | { type: "fold" }
+  | { type: "call" }
+  | { type: "check" }
+  | { type: "bet"; sizeFracPot: number }
+  | { type: "raise"; multiplier: number };
+
+export interface ChartEntry {
+  action: RelativeAction;
+  acceptable?: Array<RelativeAction["type"]>;
+}
+
+export type PostflopChart = Record<
+  Street,
+  Record<
+    "inPosition" | "outOfPosition",
+    Record<
+      BetCount,
+      Record<BoardTexture, Record<PostflopHandStrength, ChartEntry>>
+    >
+  >
+>;
+
+export type PostflopStreetAction =
+  | { actor: Position; type: "check" }
+  | { actor: Position; type: "bet"; sizeBB: number }
+  | { actor: Position; type: "raise"; sizeBB: number }
+  | { actor: Position; type: "call" }
+  | { actor: Position; type: "fold" };
+
+export interface PostflopPosition {
   id: string;
   seed: number;
   street: Street;
+  holeCards: HoleCards;
   board: Card[];
-  heroIsInPosition: boolean;
+  seats: PlayerSeat[];
+  activePlayers: Position[];
+  heroPosition: Position;
+  heroInPosition: boolean;
+  potBB: number;
   effectiveStackBB: number;
-  villainAction: PostflopVillainAction;
-}
-
-export interface PostflopEvaluationResult {
-  verdict: EvaluationVerdict;
-  explanation: string;
-  recommendedAction: PostflopDecision;
-  handStrength: PostflopHandStrength;
-  reasoning: string[];
+  preflopActions: PreflopAction[];
+  actionHistory: PostflopStreetAction[];
+  betCount: BetCount;
+  facingBetBB: number;
 }

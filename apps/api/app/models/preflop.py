@@ -61,7 +61,7 @@ class PreflopResponse(Base):
     )
     user: Mapped[User] = relationship()
 
-    table_size: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    table_size: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=6)
 
     hero_position: Mapped[Position] = mapped_column(PositionType, nullable=False)
 

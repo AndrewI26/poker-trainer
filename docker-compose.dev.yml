@@ -30,6 +30,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile.dev
+    environment:
+      ENV: ${ENV}
+      API_PORT: ${API_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "${API_PORT}:8000"
+    volumes:
+      - ./apps/api:/app:ro
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

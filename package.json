@@ -15,6 +15,7 @@
     "dev:mobile": "cd apps/mobile && bunx expo start",
     "dev:ios": "cd apps/mobile && bunx expo start --ios",
     "dev:android": "cd apps/mobile && bunx expo start --android",
+    "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
     "codegen": "openapi-ts",
     "db:shell": "docker compose exec db sh",
     "db:psql": "docker compose exec db psql -U postgres -d poker_trainer",

@@ -205,6 +205,7 @@ export default function PreflopScreen() {
 
       <View style={{ flex: 1, paddingTop: theme.spacing.lg }}>
         <PokerTable
+          mode="preflop"
           scenario={scenario}
           revealedCount={revealedCount}
           blindRevealedCount={blindRevealedCount}
