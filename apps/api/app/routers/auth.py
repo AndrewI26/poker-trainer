@@ -1,7 +1,11 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
 from app.dependencies.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     ALGORITHM,
@@ -13,9 +17,6 @@ from app.dependencies.auth import (
 from app.dependencies.db import get_db
 from app.models.users import User
 from app.schemas.users import Token, UserPublic
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,7 +33,7 @@ async def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token = jwt.encode(
         {"sub": user.username, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM
     )

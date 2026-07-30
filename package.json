@@ -15,6 +15,7 @@
     "dev:mobile": "cd apps/mobile && bunx expo start",
     "dev:ios": "cd apps/mobile && bunx expo start --ios",
     "dev:android": "cd apps/mobile && bunx expo start --android",
+    "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
     "codegen": "openapi-ts",
     "db:shell": "docker compose exec db sh",
     "db:psql": "docker compose exec db psql -U postgres -d poker_trainer",
@@ -30,7 +31,11 @@
     "typecheck:ts": "tsc -p apps/web/tsconfig.json --noEmit && tsc -p apps/mobile/tsconfig.json --noEmit && tsc -p packages/poker-engine/tsconfig.json --noEmit",
     "typecheck:api": "cd apps/api && uv run pyright",
     "test": "cd apps/api && uv run pytest",
-    "test:api": "cd apps/api && uv run pytest"
+    "test:api": "cd apps/api && uv run pytest",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "bun run format && bun run lint && bun run typecheck"
   },
   "overrides": {
     "react": "19.1.0",
@@ -43,6 +48,7 @@
     "concurrently": "^9.1.2",
     "openapi-fetch": "^0.13.5",
     "openapi-typescript": "^7.6.1",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^5.7.3"
   }
 }

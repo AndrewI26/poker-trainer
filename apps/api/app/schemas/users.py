@@ -1,7 +1,7 @@
-from datetime import datetime
 import re
+from datetime import datetime
+from uuid import UUID
 
-from app.models.users import UserRole
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -10,7 +10,8 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from uuid import UUID
+
+from app.models.users import UserRole
 
 
 class Token(BaseModel):

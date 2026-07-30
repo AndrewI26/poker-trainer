@@ -4,6 +4,9 @@ import {
   type Card,
   type HoleCards,
   type PlayerSeat,
+  type Position,
+  type PostflopDecision,
+  type PostflopPosition,
   type PreflopAction,
   type Suit,
   type TableScenario,
@@ -37,10 +40,7 @@ function suitIcon(suit: Suit): keyof typeof MaterialCommunityIcons.glyphMap {
   return "cards-spade";
 }
 
-function ChipBet({ action }: { action: PreflopAction }) {
-  if (action.action === "fold" || action.sizeBB == null) return null;
-  const amount = action.sizeBB;
-
+function ChipBet({ sizeBB }: { sizeBB: number }) {
   return (
     <View
       style={{
@@ -72,7 +72,7 @@ function ChipBet({ action }: { action: PreflopAction }) {
           color: theme.palette.gold[500],
         }}
       >
-        {amount % 1 === 0 ? `${amount}BB` : `${amount.toFixed(1)}BB`}
+        {sizeBB % 1 === 0 ? `${sizeBB}BB` : `${sizeBB.toFixed(1)}BB`}
       </Text>
     </View>
   );
@@ -174,13 +174,17 @@ function HeroCards({
 function PlayerToken({
   seat,
   action,
+  betSizeBB,
+  labelOverride,
   holeCards,
   cardsTrigger,
   suppressBet,
 }: {
   seat: PlayerSeat;
-  action: PreflopAction | null;
-  holeCards: HoleCards;
+  action?: PreflopAction | null;
+  betSizeBB?: number | null;
+  labelOverride?: string;
+  holeCards?: HoleCards;
   cardsTrigger?: number;
   suppressBet?: boolean;
 }) {
@@ -188,6 +192,13 @@ function PlayerToken({
   const isHero = seat.isHero;
   const avatarBg = isHero ? t.accent.blue : t.assets.bgCardSecondary;
   const avatarBorder = isHero ? t.accent.blue : t.assets.strokeInactive;
+
+  const chipSizeBB =
+    betSizeBB != null
+      ? betSizeBB
+      : action?.action !== "fold" && action?.sizeBB != null
+        ? action.sizeBB
+        : null;
 
   return (
     <View style={{ alignItems: "center", width: TOKEN_SIZE + 24 }}>
@@ -212,7 +223,7 @@ function PlayerToken({
           numberOfLines={1}
           adjustsFontSizeToFit
         >
-          {seat.position}
+          {labelOverride ?? seat.position}
         </Text>
       </View>
 
@@ -227,91 +238,32 @@ function PlayerToken({
         {seat.stackBB}BB
       </Text>
 
-      {action && !suppressBet && <ChipBet action={action} />}
+      {!suppressBet && chipSizeBB != null && <ChipBet sizeBB={chipSizeBB} />}
 
-      {isHero && (
+      {isHero && holeCards && (
         <HeroCards holeCards={holeCards} trigger={cardsTrigger ?? 0} />
       )}
     </View>
   );
 }
 
-export function PokerTable({
-  scenario,
-  revealedCount,
-  blindRevealedCount,
-  cardsTrigger,
-  communityCards,
-  heroAction,
+function TableBackground({
+  circleD,
+  circleR,
+  circleLeft,
+  arcH,
+  topPad,
+  rectExtH,
 }: {
-  scenario: TableScenario;
-  revealedCount: number;
-  blindRevealedCount: number;
-  cardsTrigger: number;
-  communityCards?: Card[];
-  heroAction?: PreflopAction | null;
+  circleD: number;
+  circleR: number;
+  circleLeft: number;
+  arcH: number;
+  topPad: number;
+  rectExtH: number;
 }) {
-  const { width } = useWindowDimensions();
-
-  const circleD = width * CIRCLE_SCALE;
-  const circleR = circleD / 2;
-  const circleLeft = -(circleD - width) / 2;
-
-  const arcH = width * ARC_HEIGHT_RATIO;
-
-  const screenCX = width / 2;
-  const screenCY = circleR;
-
-  const playerArcR = circleR - TOKEN_SIZE / 2;
-
-  const maxHalfSpread = Math.asin(
-    Math.min(1, (screenCX - TOKEN_SLOT_W / 2 - EDGE_MARGIN) / playerArcR),
-  );
-  const spreadRad = maxHalfSpread * 2;
-
-  const { seats, actionsBefore, holeCards, potState } = scenario;
-  const heroSeat = seats.find((s) => s.isHero) ?? seats[seats.length - 1];
-
-  const tablePositions = ACTION_ORDER_BY_SIZE[
-    scenario.tableSize
-  ] as readonly string[];
-  const btnIdx = tablePositions.indexOf("BTN");
-  const clockwiseFromBtn = [
-    ...tablePositions.slice(btnIdx),
-    ...tablePositions.slice(0, btnIdx),
-  ];
-  const heroIdx = clockwiseFromBtn.indexOf(scenario.heroPosition);
-  const nonHeroClockwise: PlayerSeat[] = Array.from(
-    { length: clockwiseFromBtn.length - 1 },
-    (_, i) => {
-      const pos = clockwiseFromBtn[(heroIdx + 1 + i) % clockwiseFromBtn.length];
-      return seats.find((s) => s.position === pos);
-    },
-  ).filter((s): s is PlayerSeat => s !== undefined);
-  const nonHero = nonHeroClockwise;
-  const actingSeats = nonHero.filter((s) =>
-    actionsBefore.some((a) => a.position === s.position),
-  );
-  const positions = nonHero.map((seat, i) => {
-    const t = nonHero.length === 1 ? 0.5 : i / (nonHero.length - 1);
-    const angle = -Math.PI / 2 - spreadRad / 2 + t * spreadRad;
-    const x = screenCX + playerArcR * Math.cos(angle);
-    const y = screenCY + playerArcR * Math.sin(angle);
-    return { seat, x, y };
-  });
-
-  const lowestPlayerY = positions.length
-    ? Math.max(...positions.map((p) => p.y))
-    : arcH * 0.72;
-  const communityCardsTop = lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
-  const communityCardW = width * COMMUNITY_CARD_W_RATIO;
-  const communityCardH = communityCardW * (50 / 36);
-
-  const topPad = 40;
-  const rectExtH = TOKEN_SLOT_H + 300;
-
   return (
-    <View style={{ width, flex: 1 }}>
+    <>
       <View
         style={{
           position: "absolute",
@@ -380,97 +332,376 @@ export function PokerTable({
           height: rectExtH,
         }}
       />
+    </>
+  );
+}
 
-      <View
-        style={{
-          position: "absolute",
-          top: topPad + communityCardsTop,
-          width: "100%",
-          paddingHorizontal: 15,
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        {["c1", "c2", "c3", "c4", "c5"].map((id, i) => {
-          const card = communityCards?.[i];
-          return card ? (
-            <View
-              key={id}
+function CommunityCards({
+  cards,
+  top,
+  cardW,
+  cardH,
+}: {
+  cards: (Card | undefined)[];
+  top: number;
+  cardW: number;
+  cardH: number;
+}) {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top,
+        width: "100%",
+        paddingHorizontal: 15,
+        flexDirection: "row",
+        justifyContent: "space-between",
+      }}
+    >
+      {["c1", "c2", "c3", "c4", "c5"].map((id, i) => {
+        const card = cards[i];
+        return card ? (
+          <View
+            key={id}
+            style={{
+              width: cardW,
+              height: cardH,
+              borderRadius: 5,
+              backgroundColor: "#ffffff",
+              borderWidth: 1,
+              borderColor: "#e5e5e5",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingTop: 4,
+            }}
+          >
+            <Text
               style={{
-                width: communityCardW,
-                height: communityCardH,
-                borderRadius: 5,
-                backgroundColor: "#ffffff",
-                borderWidth: 1,
-                borderColor: "#e5e5e5",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingTop: 4,
+                fontFamily: theme.fontFamily.bold,
+                fontSize: theme.fontSize.h5,
+                color: suitColor(card.suit),
+                lineHeight: theme.fontSize.h5 * 1.1,
+                includeFontPadding: false,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: theme.fontFamily.bold,
-                  fontSize: theme.fontSize.body,
-                  color: suitColor(card.suit),
-                  lineHeight: theme.fontSize.body * 1.1,
-                  includeFontPadding: false,
-                }}
-              >
-                {card.rank}
-              </Text>
-              <MaterialCommunityIcons
-                name={suitIcon(card.suit)}
-                size={14}
-                color={suitColor(card.suit)}
-              />
-            </View>
-          ) : (
-            <View
-              key={id}
-              style={{
-                width: communityCardW,
-                height: communityCardH,
-                borderRadius: 5,
-                backgroundColor: "rgba(255, 255, 255, 0.01)",
-                borderWidth: 1.5,
-                borderColor: "rgba(255, 255, 255, 0.03)",
-              }}
+              {card.rank}
+            </Text>
+            <MaterialCommunityIcons
+              name={suitIcon(card.suit)}
+              size={18}
+              color={suitColor(card.suit)}
             />
-          );
-        })}
-      </View>
+          </View>
+        ) : (
+          <View
+            key={id}
+            style={{
+              width: cardW,
+              height: cardH,
+              borderRadius: 5,
+              backgroundColor: "rgba(255, 255, 255, 0.01)",
+              borderWidth: 1.5,
+              borderColor: "rgba(255, 255, 255, 0.03)",
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+}
 
-      <View
+function PotDisplay({
+  potBB,
+  arcH,
+  width,
+  topPad,
+}: {
+  potBB: number;
+  arcH: number;
+  width: number;
+  topPad: number;
+}) {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: topPad + arcH * 0.42,
+        left: width / 2 - 40,
+        width: 80,
+        alignItems: "center",
+      }}
+    >
+      <Text
         style={{
-          position: "absolute",
-          top: topPad + arcH * 0.42,
-          left: width / 2 - 40,
-          width: 80,
-          alignItems: "center",
+          fontFamily: theme.fontFamily.bold,
+          fontSize: theme.fontSize.xs,
+          color: "rgba(255,255,255,0.5)",
+          textTransform: "uppercase",
+          letterSpacing: 1,
         }}
       >
-        <Text
+        POT
+      </Text>
+      <Text
+        style={{
+          fontFamily: theme.fontFamily.bold,
+          fontSize: theme.fontSize.h5,
+          color: "rgba(255,255,255,0.9)",
+        }}
+      >
+        {potBB.toFixed(1)}BB
+      </Text>
+    </View>
+  );
+}
+
+type PreflopTableProps = {
+  mode: "preflop";
+  scenario: TableScenario;
+  revealedCount: number;
+  blindRevealedCount: number;
+  cardsTrigger: number;
+  communityCards?: Card[];
+  heroAction?: PreflopAction | null;
+};
+
+type PostflopTableProps = {
+  mode: "postflop";
+  position: PostflopPosition;
+  cardsTrigger: number;
+  heroAction?: PostflopDecision | null;
+  revealedCount?: number;
+  boardVisible?: boolean;
+};
+
+export function PokerTable(props: PreflopTableProps | PostflopTableProps) {
+  const { width } = useWindowDimensions();
+
+  const circleD = width * CIRCLE_SCALE;
+  const circleR = circleD / 2;
+  const circleLeft = -(circleD - width) / 2;
+  const arcH = width * ARC_HEIGHT_RATIO;
+  const screenCX = width / 2;
+  const screenCY = circleR;
+  const playerArcR = circleR - TOKEN_SIZE / 2;
+  const maxHalfSpread = Math.asin(
+    Math.min(1, (screenCX - TOKEN_SLOT_W / 2 - EDGE_MARGIN) / playerArcR),
+  );
+  const spreadRad = maxHalfSpread * 2;
+  const communityCardW = width * COMMUNITY_CARD_W_RATIO;
+  const communityCardH = communityCardW * (50 / 36);
+  const topPad = 40;
+  const rectExtH = TOKEN_SLOT_H + 300;
+
+  if (props.mode === "postflop") {
+    const {
+      position,
+      cardsTrigger,
+      heroAction,
+      revealedCount,
+      boardVisible = true,
+    } = props;
+
+    const heroSeat =
+      position.seats.find((s) => s.isHero) ??
+      position.seats[position.seats.length - 1];
+
+    const postflopDisplayOrder: Position[] = [
+      "SB",
+      "BB",
+      "UTG",
+      "UTG+1",
+      "UTG+2",
+      "LJ",
+      "HJ",
+      "CO",
+      "BTN",
+    ];
+    const nonHeroSeats = postflopDisplayOrder
+      .filter((p) => p !== position.heroPosition)
+      .map((p) => position.seats.find((s) => s.position === p))
+      .filter((s): s is PlayerSeat => s !== undefined);
+
+    const revealedHistory = position.actionHistory.slice(
+      0,
+      revealedCount ?? position.actionHistory.length,
+    );
+    const foldedDuringStreet = new Set(
+      revealedHistory.filter((a) => a.type === "fold").map((a) => a.actor),
+    );
+
+    const lastAggressor = [...revealedHistory]
+      .reverse()
+      .find((a) => a.type === "bet" || a.type === "raise");
+    const aggressorBetBB =
+      lastAggressor &&
+      (lastAggressor.type === "bet" || lastAggressor.type === "raise")
+        ? lastAggressor.sizeBB
+        : null;
+
+    const nonHeroPositions = nonHeroSeats.map((seat, i) => {
+      const t = nonHeroSeats.length === 1 ? 0.5 : i / (nonHeroSeats.length - 1);
+      const angle = -Math.PI / 2 - spreadRad / 2 + t * spreadRad;
+      const x = screenCX + playerArcR * Math.cos(angle);
+      const y = screenCY + playerArcR * Math.sin(angle);
+      return { seat, x, y };
+    });
+
+    const lowestPlayerY = nonHeroPositions.length
+      ? Math.max(...nonHeroPositions.map((p) => p.y))
+      : arcH * 0.72;
+    const communityCardsTop =
+      lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
+
+    const heroSubmittedBetSizeBB =
+      heroAction && (heroAction.type === "bet" || heroAction.type === "raise")
+        ? heroAction.sizeBB
+        : null;
+
+    return (
+      <View style={{ width, flex: 1 }}>
+        <TableBackground
+          circleD={circleD}
+          circleR={circleR}
+          circleLeft={circleLeft}
+          arcH={arcH}
+          topPad={topPad}
+          rectExtH={rectExtH}
+        />
+
+        <CommunityCards
+          cards={boardVisible ? position.board : []}
+          top={topPad + communityCardsTop}
+          cardW={communityCardW}
+          cardH={communityCardH}
+        />
+
+        <PotDisplay
+          potBB={position.potBB}
+          arcH={arcH}
+          width={width}
+          topPad={topPad}
+        />
+
+        {nonHeroPositions.map(({ seat, x, y }) => (
+          <View
+            key={seat.position}
+            style={{
+              position: "absolute",
+              left: x - TOKEN_SLOT_W / 2,
+              top: topPad + y - TOKEN_SLOT_H / 2,
+              opacity:
+                seat.hasFolded || foldedDuringStreet.has(seat.position)
+                  ? 0.35
+                  : 1,
+            }}
+          >
+            <PlayerToken
+              seat={seat}
+              betSizeBB={
+                aggressorBetBB != null && lastAggressor?.actor === seat.position
+                  ? aggressorBetBB
+                  : null
+              }
+            />
+          </View>
+        ))}
+
+        <View
           style={{
-            fontFamily: theme.fontFamily.bold,
-            fontSize: theme.fontSize.xs,
-            color: "rgba(255,255,255,0.5)",
-            textTransform: "uppercase",
-            letterSpacing: 1,
+            position: "absolute",
+            left: width / 2 - TOKEN_SLOT_W / 2,
+            bottom: 16,
+            width: TOKEN_SLOT_W,
+            alignItems: "center",
           }}
         >
-          POT
-        </Text>
-        <Text
-          style={{
-            fontFamily: theme.fontFamily.bold,
-            fontSize: theme.fontSize.h5,
-            color: "rgba(255,255,255,0.9)",
-          }}
-        >
-          {potState.potBB.toFixed(1)}BB
-        </Text>
+          {heroSubmittedBetSizeBB != null && (
+            <View style={{ marginBottom: 8 }}>
+              <ChipBet sizeBB={heroSubmittedBetSizeBB} />
+            </View>
+          )}
+          <PlayerToken
+            key={position.holeCards.map((c) => `${c.rank}${c.suit}`).join("")}
+            seat={heroSeat}
+            holeCards={position.holeCards}
+            cardsTrigger={cardsTrigger}
+            suppressBet
+          />
+        </View>
       </View>
+    );
+  }
+
+  const {
+    scenario,
+    revealedCount,
+    blindRevealedCount,
+    cardsTrigger,
+    communityCards,
+    heroAction,
+  } = props;
+
+  const { seats, actionsBefore, holeCards, potState } = scenario;
+  const heroSeat = seats.find((s) => s.isHero) ?? seats[seats.length - 1];
+
+  const tablePositions = ACTION_ORDER_BY_SIZE[
+    scenario.tableSize
+  ] as readonly string[];
+  const btnIdx = tablePositions.indexOf("BTN");
+  const clockwiseFromBtn = [
+    ...tablePositions.slice(btnIdx),
+    ...tablePositions.slice(0, btnIdx),
+  ];
+  const heroIdx = clockwiseFromBtn.indexOf(scenario.heroPosition);
+  const nonHeroClockwise: PlayerSeat[] = Array.from(
+    { length: clockwiseFromBtn.length - 1 },
+    (_, i) => {
+      const pos = clockwiseFromBtn[(heroIdx + 1 + i) % clockwiseFromBtn.length];
+      return seats.find((s) => s.position === pos);
+    },
+  ).filter((s): s is PlayerSeat => s !== undefined);
+  const nonHero = nonHeroClockwise;
+  const actingSeats = nonHero.filter((s) =>
+    actionsBefore.some((a) => a.position === s.position),
+  );
+  const positions = nonHero.map((seat, i) => {
+    const t = nonHero.length === 1 ? 0.5 : i / (nonHero.length - 1);
+    const angle = -Math.PI / 2 - spreadRad / 2 + t * spreadRad;
+    const x = screenCX + playerArcR * Math.cos(angle);
+    const y = screenCY + playerArcR * Math.sin(angle);
+    return { seat, x, y };
+  });
+
+  const lowestPlayerY = positions.length
+    ? Math.max(...positions.map((p) => p.y))
+    : arcH * 0.72;
+  const communityCardsTop = lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
+
+  return (
+    <View style={{ width, flex: 1 }}>
+      <TableBackground
+        circleD={circleD}
+        circleR={circleR}
+        circleLeft={circleLeft}
+        arcH={arcH}
+        topPad={topPad}
+        rectExtH={rectExtH}
+      />
+
+      <CommunityCards
+        cards={communityCards ?? []}
+        top={topPad + communityCardsTop}
+        cardW={communityCardW}
+        cardH={communityCardH}
+      />
+
+      <PotDisplay
+        potBB={potState.potBB}
+        arcH={arcH}
+        width={width}
+        topPad={topPad}
+      />
 
       {positions.map(({ seat, x, y }) => {
         const sbBB = scenario.blindStructure.bigBlind;
@@ -512,17 +743,17 @@ export function PokerTable({
       })}
 
       {(() => {
-        const heroBlindAction =
+        const heroBlindAction: PreflopAction | null =
           heroSeat.position === "SB" && blindRevealedCount >= 1
             ? {
-                position: "SB" as const,
-                action: "limp" as const,
+                position: "SB",
+                action: "limp",
                 sizeBB:
                   scenario.blindStructure.smallBlind /
                   scenario.blindStructure.bigBlind,
               }
             : heroSeat.position === "BB" && blindRevealedCount >= 2
-              ? { position: "BB" as const, action: "limp" as const, sizeBB: 1 }
+              ? { position: "BB", action: "limp", sizeBB: 1 }
               : null;
         const heroActionRevealed =
           Boolean(heroAction) && revealedCount > actionsBefore.length;
@@ -539,11 +770,13 @@ export function PokerTable({
               alignItems: "center",
             }}
           >
-            {displayHeroAction && (
-              <View style={{ marginBottom: 8 }}>
-                <ChipBet action={displayHeroAction} />
-              </View>
-            )}
+            {displayHeroAction &&
+              displayHeroAction.action !== "fold" &&
+              displayHeroAction.sizeBB != null && (
+                <View style={{ marginBottom: 8 }}>
+                  <ChipBet sizeBB={displayHeroAction.sizeBB} />
+                </View>
+              )}
             <PlayerToken
               key={holeCards.map((c) => `${c.rank}${c.suit}`).join("")}
               seat={heroSeat}

@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { PreflopAction, TableScenario } from "@poker-trainer/poker-engine";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
+import { Connector, Dot, TimelineShell } from "./TimelinePrimitives";
 
 function actionBadgeColor(
   action: PreflopAction["action"],
@@ -69,29 +69,33 @@ export function MoveTimeline({
     blindRevealedCount < blindCount || revealedCount < totalActionSteps;
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: theme.spacing.md,
-        paddingVertical: theme.spacing.sm,
-        gap: 12,
+    <TimelineShell
+      canBack={canBack}
+      canForward={canForward}
+      onBack={() => {
+        if (!canBack) return;
+        if (revealedCount > 0) onSeek(revealedCount - 1, 2);
+        else onSeek(0, blindRevealedCount - 1);
+      }}
+      onForward={() => {
+        if (!canForward) return;
+        if (blindRevealedCount < blindCount)
+          onSeek(revealedCount, blindRevealedCount + 1);
+        else onSeek(revealedCount + 1, blindCount);
       }}
     >
-      <Pressable
-        onPress={() => {
-          if (!canBack) return;
-          if (revealedCount > 0) onSeek(revealedCount - 1, 2);
-          else onSeek(0, blindRevealedCount - 1);
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 4,
         }}
-        hitSlop={8}
-        style={{ opacity: canBack ? 1 : 0.25 }}
       >
-        <Ionicons name="chevron-back" size={18} color={t.assets.subtext} />
-      </Pressable>
-
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
         {allActions.map((action, i) => {
           const isBlind = i < blindCount;
           const actionIndex = i - blindCount;
@@ -102,6 +106,11 @@ export function MoveTimeline({
             ? i === blindRevealedCount - 1 && revealedCount === 0
             : actionIndex === revealedCount - 1;
           const badgeColors = actionBadgeColor(action.action, t);
+          const dotBorder = revealed
+            ? action.action === "fold"
+              ? t.assets.strokeInactive
+              : badgeColors.text
+            : t.assets.strokeInactive;
 
           return (
             <View
@@ -110,15 +119,8 @@ export function MoveTimeline({
               style={{ flexDirection: "row", alignItems: "center" }}
             >
               {i > 0 && (
-                <View
-                  style={{
-                    width: 8,
-                    height: 1,
-                    backgroundColor: revealed
-                      ? badgeColors.text
-                      : t.assets.strokeInactive,
-                    opacity: 0.4,
-                  }}
+                <Connector
+                  color={revealed ? badgeColors.text : t.assets.strokeInactive}
                 />
               )}
               <Pressable
@@ -133,75 +135,32 @@ export function MoveTimeline({
                   justifyContent: "center",
                 }}
               >
-                <View
-                  style={{
-                    width: active ? 28 : 22,
-                    height: active ? 28 : 22,
-                    borderRadius: 14,
-                    backgroundColor: revealed
+                <Dot
+                  size={active ? 28 : 22}
+                  bg={
+                    revealed
                       ? action.action === "fold"
                         ? t.assets.bgDisabled
                         : badgeColors.bg
-                      : t.assets.bgCardSecondary,
-                    borderWidth: active ? 2 : 1,
-                    borderColor: revealed
+                      : t.assets.bgCardSecondary
+                  }
+                  border={dotBorder}
+                  borderWidth={active ? 2 : 1}
+                  label={action.position}
+                  labelColor={
+                    revealed
                       ? action.action === "fold"
                         ? t.assets.strokeInactive
                         : badgeColors.text
-                      : t.assets.strokeInactive,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: theme.fontFamily.bold,
-                      fontSize: 8,
-                      color: revealed
-                        ? action.action === "fold"
-                          ? t.assets.strokeInactive
-                          : badgeColors.text
-                        : t.assets.subtext,
-                      textAlign: "center",
-                      includeFontPadding: false,
-                      lineHeight: 8,
-                      paddingTop: 2,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {action.position}
-                  </Text>
-                  {revealed && action.action === "fold" && (
-                    <View
-                      style={{
-                        position: "absolute",
-                        width: active ? 28 : 22,
-                        height: 1,
-                        backgroundColor: t.assets.strokeInactive,
-                        opacity: 0.6,
-                        transform: [{ rotate: "-45deg" }],
-                      }}
-                    />
-                  )}
-                </View>
+                      : t.assets.subtext
+                  }
+                  folded={revealed && action.action === "fold"}
+                />
               </Pressable>
             </View>
           );
         })}
-      </View>
-
-      <Pressable
-        onPress={() => {
-          if (!canForward) return;
-          if (blindRevealedCount < blindCount)
-            onSeek(revealedCount, blindRevealedCount + 1);
-          else onSeek(revealedCount + 1, blindCount);
-        }}
-        hitSlop={8}
-        style={{ opacity: canForward ? 1 : 0.25 }}
-      >
-        <Ionicons name="chevron-forward" size={18} color={t.assets.subtext} />
-      </Pressable>
-    </View>
+      </ScrollView>
+    </TimelineShell>
   );
 }

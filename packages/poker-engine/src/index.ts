@@ -2,8 +2,13 @@ export { createDeck, dealCards, shuffleDeck } from "./deck";
 export { evaluateDecision } from "./evaluator";
 export { classifyHand, isPocketPair, isSuited, rankToNumber } from "./hands";
 export {
-  evaluatePostflopDecision,
-  generatePostflopScenario,
+  classifyBoardTexture,
+  classifyHandStrength,
+  evaluateHeroAction,
+  generatePostflopPosition,
+  lookupChartEntry,
+  POSTFLOP_DECISION_CHART,
+  resolveAction,
 } from "./postflop";
 export { SeededRng } from "./rng";
 export {
@@ -13,8 +18,11 @@ export {
 } from "./scenario";
 export type {
   ActionType,
+  BetCount,
   BlindStructure,
+  BoardTexture,
   Card,
+  ChartEntry,
   Decision,
   EvaluationResult,
   EvaluationVerdict,
@@ -25,14 +33,14 @@ export type {
   PlayerSeat,
   Position,
   PostflopDecision,
-  PostflopEvaluationResult,
   PostflopHandStrength,
-  PostflopScenario,
-  PostflopVillainAction,
+  PostflopPosition,
+  PostflopStreetAction,
   PotState,
   PreflopAction,
   PreflopScenario,
   Rank,
+  RelativeAction,
   ScenarioGeneratorOptions,
   Street,
   Suit,
