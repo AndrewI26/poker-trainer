@@ -22,8 +22,6 @@
 | [`packages/api-client`](packages/api-client) | Generated **`openapi-typescript`** types + **`openapi-fetch`** (`createApiClient`) |
 | [`packages/query`](packages/query) | Shared query keys and hooks on top of the API client |
 
-Internal packages use `file:` links so installs work without a registry.
-
 ## First-time setup
 
 1. **Install JS dependencies:** `bun install`
