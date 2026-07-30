@@ -141,9 +141,7 @@ export function HandTimeline({
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           {preflopActions.length > 0 && (
             <Connector
-              color={
-                boardRevealed ? t.assets.subtext : t.assets.strokeInactive
-              }
+              color={boardRevealed ? t.assets.subtext : t.assets.strokeInactive}
             />
           )}
           <Pressable onPress={() => onSeek(boardStep)} hitSlop={8}>

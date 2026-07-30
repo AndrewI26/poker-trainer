@@ -494,14 +494,28 @@ export function PokerTable(props: PreflopTableProps | PostflopTableProps) {
   const rectExtH = TOKEN_SLOT_H + 300;
 
   if (props.mode === "postflop") {
-    const { position, cardsTrigger, heroAction, revealedCount, boardVisible = true } = props;
+    const {
+      position,
+      cardsTrigger,
+      heroAction,
+      revealedCount,
+      boardVisible = true,
+    } = props;
 
     const heroSeat =
       position.seats.find((s) => s.isHero) ??
       position.seats[position.seats.length - 1];
 
     const postflopDisplayOrder: Position[] = [
-      "SB", "BB", "UTG", "UTG+1", "UTG+2", "LJ", "HJ", "CO", "BTN",
+      "SB",
+      "BB",
+      "UTG",
+      "UTG+1",
+      "UTG+2",
+      "LJ",
+      "HJ",
+      "CO",
+      "BTN",
     ];
     const nonHeroSeats = postflopDisplayOrder
       .filter((p) => p !== position.heroPosition)
@@ -536,7 +550,8 @@ export function PokerTable(props: PreflopTableProps | PostflopTableProps) {
     const lowestPlayerY = nonHeroPositions.length
       ? Math.max(...nonHeroPositions.map((p) => p.y))
       : arcH * 0.72;
-    const communityCardsTop = lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
+    const communityCardsTop =
+      lowestPlayerY + TOKEN_SLOT_H / 2 + theme.spacing.lg;
 
     const heroSubmittedBetSizeBB =
       heroAction && (heroAction.type === "bet" || heroAction.type === "raise")
@@ -584,8 +599,7 @@ export function PokerTable(props: PreflopTableProps | PostflopTableProps) {
             <PlayerToken
               seat={seat}
               betSizeBB={
-                aggressorBetBB != null &&
-                lastAggressor?.actor === seat.position
+                aggressorBetBB != null && lastAggressor?.actor === seat.position
                   ? aggressorBetBB
                   : null
               }

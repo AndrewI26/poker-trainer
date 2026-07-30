@@ -961,8 +961,7 @@ const POSTFLOP_ACTION_ORDER: Position[] = [
 ];
 
 export function generatePostflopPosition(seed?: number): PostflopPosition {
-  const s =
-    seed ?? ((Date.now() ^ Math.floor(Math.random() * 2 ** 32)) >>> 0);
+  const s = seed ?? (Date.now() ^ Math.floor(Math.random() * 2 ** 32)) >>> 0;
   const rng = new SeededRng(s);
 
   const tableSize = rng.nextInt(3, 6);
@@ -1052,8 +1051,7 @@ export function generatePostflopPosition(seed?: number): PostflopPosition {
         actionHistory.push({ actor, type: "call" });
         currentPot += facingBetBB;
       } else {
-        const raiseSize =
-          Math.round(facingBetBB * (rng.next() + 2) * 2) / 2;
+        const raiseSize = Math.round(facingBetBB * (rng.next() + 2) * 2) / 2;
         actionHistory.push({ actor, type: "raise", sizeBB: raiseSize });
         currentPot += raiseSize;
         facingBetBB = raiseSize;
