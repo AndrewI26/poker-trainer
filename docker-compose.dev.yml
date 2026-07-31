@@ -41,7 +41,7 @@ services:
     ports:
       - "${API_PORT}:8000"
     volumes:
-      - ./apps/api:/app:ro
+      - ./apps/api:/app
     depends_on:
       db:
         condition: service_healthy

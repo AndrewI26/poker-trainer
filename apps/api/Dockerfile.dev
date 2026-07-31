@@ -2,6 +2,8 @@ FROM ghcr.io/astral-sh/uv:alpine
 
 WORKDIR /app
 
+COPY apps/api/pyproject.toml apps/api/uv.lock* ./
+
 RUN uv sync
 
 EXPOSE ${DB_PORT}

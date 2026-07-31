@@ -12,6 +12,14 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
+// Exclude directories that shouldn't be watched
+config.resolver.blockList = [
+  /\.venv\//,
+  /\.git\//,
+  /dist\//,
+  /build\//,
+];
+
 // Force single copies of React to prevent invalid hook call errors in monorepo
 config.resolver.extraNodeModules = {
   react: path.resolve(monorepoRoot, "node_modules/react"),
