@@ -27,8 +27,8 @@ Internal packages use `file:` links so installs work without a registry.
 ## First-time setup
 
 1. **Install JS dependencies:** `bun install`
-2. **Run the API and DB** `bun run dev:docker`
-3. **Spin up the mobile app** `bun run ios` or `bun run android`
+2. **Run the API and DB** `bun run docker:dev`
+3. **Spin up the mobile app** `bun run dev:ios` or `bun run dev:android`
 
 **New migrations:**
 

@@ -37,11 +37,12 @@ services:
     environment:
       ENV: ${ENV}
       API_PORT: ${API_PORT}
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
-      - "${API_PORT}:8000"
+      - "${API_PORT}:${API_PORT}"
     volumes:
       - ./apps/api:/app:ro
+      - api_venv:/app/.venv
     depends_on:
       db:
         condition: service_healthy
@@ -49,3 +50,4 @@ services:
 volumes:
   postgres_data:
   cloudbeaver_data:
+  api_venv:

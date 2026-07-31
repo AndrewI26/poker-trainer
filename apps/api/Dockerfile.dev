@@ -2,8 +2,7 @@ FROM ghcr.io/astral-sh/uv:alpine
 
 WORKDIR /app
 
-RUN uv sync
+COPY apps/api/pyproject.toml apps/api/uv.lock ./
+RUN uv sync --frozen
 
-EXPOSE ${DB_PORT}
-
-CMD ["uv", "run", "uvicorn", "app.main:app", "--reload"]
+CMD ["sh", "-c", "uv run alembic upgrade head && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port ${API_PORT}"]
