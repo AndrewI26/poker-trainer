@@ -37,6 +37,17 @@ uv run alembic revision --autogenerate -m "describe change"
 uv run alembic upgrade head
 ```
 
+## Local endpoints
+
+Once `bun run docker:dev` is running:
+
+| Service | URL | Purpose |
+| ------- | --- | ------- |
+| API docs (Swagger UI) | <http://localhost:8000/docs> | Interactive, auto-generated FastAPI docs — try requests directly in the browser |
+| CloudBeaver | <http://localhost:8978> | Web-based Postgres browser/admin for the `db` container |
+
+Ports come from `API_PORT` and `CB_SERVER_URL` in your `.env` — adjust the URLs above if you've changed those.
+
 ### OpenAPI → TypeScript client
 
 ```bash
