@@ -46,6 +46,11 @@ class UserCreate(BaseModel):
         return self
 
 
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class UserDelete(BaseModel):
     password: str
 

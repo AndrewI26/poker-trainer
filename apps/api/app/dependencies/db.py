@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import Annotated
 
 from sqlalchemy.orm import Session
 
@@ -12,3 +13,6 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+Db = Annotated[Session, get_db]

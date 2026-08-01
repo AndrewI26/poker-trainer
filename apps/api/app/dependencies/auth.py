@@ -76,6 +76,8 @@ async def get_current_user(
     return user
 
 
+CurrentUser = Annotated[User, Depends(get_current_user)]
+
 _ROLE_LEVELS = {UserRole.FREE: 0, UserRole.PREMIUM: 1, UserRole.ADMIN: 2}
 
 

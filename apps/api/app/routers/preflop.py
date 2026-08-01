@@ -1,12 +1,8 @@
-from typing import Annotated
+from fastapi import APIRouter, status
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
-
-from app.dependencies.auth import get_current_user
-from app.dependencies.db import get_db
+from app.dependencies.auth import CurrentUser
+from app.dependencies.db import Db
 from app.models.preflop import PreflopResponse
-from app.models.users import User
 from app.schemas.preflop import PreflopResponseCreate, PreflopResponsePublic
 
 router = APIRouter(prefix="/preflop", tags=["preflop"])
@@ -17,8 +13,8 @@ router = APIRouter(prefix="/preflop", tags=["preflop"])
 )
 def create_response(
     body: PreflopResponseCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: Db,
 ):
     response = PreflopResponse(
         user_id=current_user.id,

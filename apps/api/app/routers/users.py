@@ -1,33 +1,33 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from app.dependencies.auth import (
-    get_current_user,
+    CurrentUser,
     hash_password,
     require_role,
     verify_password,
 )
-from app.dependencies.db import get_db
+from app.dependencies.db import Db
 from app.models.users import User, UserRole
-from app.schemas.users import UserCreate, UserDelete, UserPublic
+from app.schemas.users import UserCreate, UserDelete, UserPublic, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/", response_model=list[UserPublic])
+@router.get(
+    "/",
+    response_model=list[UserPublic],
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+)
 def list_users(
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_role(UserRole.ADMIN)),
+    db: Db,
 ):
     return db.execute(select(User)).scalars().all()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(user: UserCreate, db: Db):
     new_user = User(
         username=user.username,
         first_name=user.first_name,
@@ -47,11 +47,35 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
+@router.put("/", response_model=UserPublic)
+def update_current_user(
+    body: UserUpdate,
+    current_user: CurrentUser,
+    db: Db,
+):
+    update_user_data = body.model_dump(exclude_unset=True)
+
+    if not update_user_data:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No fields to update")
+
+    stmt = (
+        update(User)
+        .where(User.id == current_user.id)
+        .values(**update_user_data)
+        .returning(User)
+    )
+
+    updated_user = db.scalar(stmt)
+    db.commit()
+
+    return updated_user
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_current_user(
     body: UserDelete,
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: Db,
 ):
     if not verify_password(body.password, current_user.hashed_password):
         raise HTTPException(
