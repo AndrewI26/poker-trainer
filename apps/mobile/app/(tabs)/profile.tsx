@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import { useAuth } from "@/auth/AuthContext";
-import { PreflopChart } from "@/components/features/PreflopChart";
+import { PreflopRangeChart } from "@/components/features/PreflopRangeChart";
 import { ProfileHeader } from "@/components/features/ProfileHeader";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Button, Card, Label } from "@/components/ui";
@@ -92,7 +92,7 @@ export default function ProfileScreen() {
 
       <Label>Preflop Chart</Label>
       <Card>
-        <PreflopChart />
+        <PreflopRangeChart position="BTN" tableSize={6} selectablePosition />
       </Card>
 
       <Label>Settings</Label>

@@ -1,5 +1,11 @@
 export { createDeck, dealCards, shuffleDeck } from "./deck";
-export { evaluateDecision } from "./evaluator";
+export {
+  evaluateDecision,
+  getFacingPressure,
+  getPositionAdvantage,
+  recommendAction,
+  scenarioContext,
+} from "./evaluator";
 export { classifyHand, isPocketPair, isSuited, rankToNumber } from "./hands";
 export {
   classifyBoardTexture,
@@ -10,6 +16,20 @@ export {
   POSTFLOP_DECISION_CHART,
   resolveAction,
 } from "./postflop";
+export type {
+  ChartAction,
+  PreflopRangeChart,
+  RangeChartCell,
+  RangeChartOptions,
+} from "./range";
+export {
+  buildRangeChart,
+  handNotation,
+  isPositionAtTable,
+  MATRIX_RANKS,
+  positionsForTableSize,
+  toHandNotation,
+} from "./range";
 export { SeededRng } from "./rng";
 export {
   ACTION_ORDER,
@@ -26,12 +46,14 @@ export type {
   Decision,
   EvaluationResult,
   EvaluationVerdict,
+  FacingPressure,
   HandCategory,
   HandProfile,
   HandTexture,
   HoleCards,
   PlayerSeat,
   Position,
+  PositionAdvantage,
   PostflopDecision,
   PostflopHandStrength,
   PostflopPosition,
@@ -40,6 +62,7 @@ export type {
   PreflopAction,
   PreflopScenario,
   Rank,
+  RecommendationContext,
   RelativeAction,
   ScenarioGeneratorOptions,
   Street,

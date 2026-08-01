@@ -120,6 +120,23 @@ export interface HandProfile {
   pairRank: Rank | null;
 }
 
+export type FacingPressure =
+  | "open"
+  | "single-raise"
+  | "three-bet"
+  | "four-bet-plus";
+
+export type PositionAdvantage = "in-position" | "out-of-position" | "neutral";
+
+export interface RecommendationContext {
+  pressure: FacingPressure;
+  positionAdvantage: PositionAdvantage;
+  heroStackBB: number;
+  potBB: number;
+  callAmountBB: number;
+  facingRaiseSizeBB: number | null;
+}
+
 export type EvaluationVerdict = "correct" | "acceptable" | "incorrect";
 
 export interface EvaluationResult {
