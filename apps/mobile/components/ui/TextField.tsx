@@ -4,8 +4,9 @@ import theme from "@/theme/theme";
 
 export function TextField({
   label,
+  error,
   ...props
-}: TextInputProps & { label: string }) {
+}: TextInputProps & { label: string; error?: string | null }) {
   const { t } = useTheme();
 
   return (
@@ -27,7 +28,7 @@ export function TextField({
         style={{
           backgroundColor: t.assets.bgField,
           borderWidth: 1,
-          borderColor: t.assets.border,
+          borderColor: error ? t.sentiment.negative : t.assets.border,
           borderRadius: theme.borderRadius.s,
           paddingVertical: theme.spacing.sm + 2,
           paddingHorizontal: theme.spacing.sm,
@@ -36,6 +37,17 @@ export function TextField({
           fontSize: theme.fontSize.body,
         }}
       />
+      {error && (
+        <Text
+          style={{
+            fontFamily: theme.fontFamily.regular,
+            fontSize: theme.fontSize.xs,
+            color: t.sentiment.negative,
+          }}
+        >
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

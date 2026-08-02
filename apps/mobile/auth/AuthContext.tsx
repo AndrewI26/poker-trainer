@@ -1,6 +1,7 @@
 import {
   client,
   getAuthMe,
+  type PostUsersError,
   postAuthToken,
   postUsers,
   type UserCreate,
@@ -30,6 +31,12 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function describeSignupError(error: PostUsersError) {
+  const message = error.detail?.[0]?.msg;
+  if (!message) return "Could not create that account";
+  return message.replace(/^Value error, /, "");
+}
 
 function applyAuthHeader(token: string | null) {
   client.setConfig({
@@ -93,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (input: UserCreate) => {
       const { error } = await postUsers({ body: input });
 
-      if (error) throw new Error("Could not create that account");
+      if (error) throw new Error(describeSignupError(error));
 
       await login(input.username, input.password);
     },
