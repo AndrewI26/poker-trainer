@@ -16,15 +16,15 @@ const queryClient = new QueryClient({
 });
 
 function RootNavigator() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!token}>
+      <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
-      <Stack.Protected guard={!!token}>
+      <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="train/preflop" />
         <Stack.Screen name="train/postflop" />

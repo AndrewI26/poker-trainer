@@ -19,6 +19,16 @@ class Token(BaseModel):
     token_type: str
 
 
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 class UserCreate(BaseModel):
     username: EmailStr
     first_name: str

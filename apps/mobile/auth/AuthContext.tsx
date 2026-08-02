@@ -1,9 +1,9 @@
 import {
-  client,
   getAuthMe,
   type PostUsersError,
   postAuthToken,
   postUsers,
+  type TokenPair,
   type UserCreate,
   type UserPublic,
 } from "@poker-trainer/api-sdk";
@@ -16,14 +16,16 @@ import {
   useState,
 } from "react";
 import {
-  clearStoredToken,
-  getStoredToken,
-  setStoredToken,
-} from "./tokenStorage";
+  endSession,
+  loadSession,
+  onSessionEnded,
+  revokeSession,
+  saveSession,
+} from "./session";
 
 interface AuthContextValue {
   user: UserPublic | null;
-  token: string | null;
+  isAuthenticated: boolean;
   isRestoring: boolean;
   login: (username: string, password: string) => Promise<void>;
   signup: (input: UserCreate) => Promise<void>;
@@ -38,50 +40,55 @@ function describeSignupError(error: PostUsersError) {
   return message.replace(/^Value error, /, "");
 }
 
-function applyAuthHeader(token: string | null) {
-  client.setConfig({
-    headers: { Authorization: token ? `Bearer ${token}` : null },
-  });
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserPublic | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
 
-  const logout = useCallback(async () => {
-    applyAuthHeader(null);
-    setToken(null);
-    setUser(null);
-    await clearStoredToken();
-  }, []);
+  useEffect(
+    () =>
+      onSessionEnded(() => {
+        setUser(null);
+        setIsAuthenticated(false);
+      }),
+    [],
+  );
 
-  const authenticate = useCallback(async (accessToken: string) => {
-    applyAuthHeader(accessToken);
+  const applySession = useCallback(async (pair: TokenPair) => {
+    await saveSession(pair);
 
     const { data: me } = await getAuthMe();
-    if (!me) throw new Error("Could not load the current user");
+    if (!me) {
+      await endSession(false);
+      throw new Error("Could not load the current user");
+    }
 
-    await setStoredToken(accessToken);
-    setToken(accessToken);
     setUser(me);
+    setIsAuthenticated(true);
   }, []);
 
   useEffect(() => {
     async function restore() {
       try {
-        const stored = await getStoredToken();
-        if (stored) await authenticate(stored);
+        const hasRefreshToken = await loadSession();
+        if (!hasRefreshToken) return;
+
+        const { data: me } = await getAuthMe();
+        if (me) {
+          setUser(me);
+          setIsAuthenticated(true);
+        } else {
+          await endSession(false);
+        }
       } catch {
-        await clearStoredToken();
-        applyAuthHeader(null);
+        await endSession(false);
       } finally {
         setIsRestoring(false);
       }
     }
 
     restore();
-  }, [authenticate]);
+  }, []);
 
   const login = useCallback(
     async (username: string, password: string) => {
@@ -91,9 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error || !data) throw new Error("Incorrect username or password");
 
-      await authenticate(data.access_token);
+      await applySession(data);
     },
-    [authenticate],
+    [applySession],
   );
 
   const signup = useCallback(
@@ -107,9 +114,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [login],
   );
 
+  const logout = useCallback(async () => {
+    await revokeSession();
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, token, isRestoring, login, signup, logout }}
+      value={{ user, isAuthenticated, isRestoring, login, signup, logout }}
     >
       {children}
     </AuthContext.Provider>
