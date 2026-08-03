@@ -3,35 +3,37 @@ import type {
   Decision,
   EvaluationResult,
   EvaluationVerdict,
+  FacingPressure,
+  HandCategory,
+  PositionAdvantage,
   PreflopScenario,
+  Rank,
+  RecommendationContext,
 } from "./types";
 
-type FacingPressure = "open" | "single-raise" | "three-bet" | "four-bet-plus";
-type PositionAdvantage = "in-position" | "out-of-position" | "neutral";
-
-function getFacingPressure(numRaisers: number): FacingPressure {
+export function getFacingPressure(numRaisers: number): FacingPressure {
   if (numRaisers === 0) return "open";
   if (numRaisers === 1) return "single-raise";
   if (numRaisers === 2) return "three-bet";
   return "four-bet-plus";
 }
 
-function getPositionAdvantage(position: string): PositionAdvantage {
+export function getPositionAdvantage(position: string): PositionAdvantage {
   if (position === "BTN" || position === "CO") return "in-position";
   if (position === "SB" || position === "BB") return "out-of-position";
   return "neutral";
 }
 
-function getRecommendedAction(
-  scenario: PreflopScenario,
-  pressure: FacingPressure,
-  posAdvantage: PositionAdvantage,
-  handCategory: string,
+export function recommendAction(
+  context: RecommendationContext,
+  handCategory: HandCategory,
+  pairRank: Rank | null,
 ): Decision {
-  const { heroStackBB, potState } = scenario;
+  const { heroStackBB, potBB, callAmountBB, facingRaiseSizeBB } = context;
+  const { pressure, positionAdvantage } = context;
   const isShort = heroStackBB < 20;
-  const inPosition = posAdvantage === "in-position";
-  const raiseSizeBB = potState.facingRaiseSizeBB ?? 0;
+  const inPosition = positionAdvantage === "in-position";
+  const raiseSizeBB = facingRaiseSizeBB ?? 0;
 
   if (pressure === "open") {
     if (handCategory === "premium" || handCategory === "strong") {
@@ -55,8 +57,7 @@ function getRecommendedAction(
     }
     if (handCategory === "speculative" && inPosition) {
       // Call if pot odds are reasonable (> 20%)
-      const potOdds =
-        potState.callAmountBB / (potState.potBB + potState.callAmountBB);
+      const potOdds = callAmountBB / (potBB + callAmountBB);
       return potOdds <= 0.3 ? { type: "call" } : { type: "fold" };
     }
     return { type: "fold" };
@@ -76,7 +77,6 @@ function getRecommendedAction(
 
   // four-bet-plus
   if (handCategory === "premium") {
-    const pairRank = classifyHand(scenario.holeCards).pairRank;
     if (pairRank === "A" || pairRank === "K") {
       return { type: "allin" };
     }
@@ -148,18 +148,31 @@ function buildExplanation(
   return `${base} The correct play is to ${actionDesc(recommended)}.`;
 }
 
+export function scenarioContext(
+  scenario: PreflopScenario,
+): RecommendationContext {
+  const { potState } = scenario;
+  return {
+    pressure: getFacingPressure(potState.numRaisers),
+    positionAdvantage: getPositionAdvantage(scenario.heroPosition),
+    heroStackBB: scenario.heroStackBB,
+    potBB: potState.potBB,
+    callAmountBB: potState.callAmountBB,
+    facingRaiseSizeBB: potState.facingRaiseSizeBB,
+  };
+}
+
 export function evaluateDecision(
   scenario: PreflopScenario,
   decision: Decision,
 ): EvaluationResult {
   const profile = classifyHand(scenario.holeCards);
-  const pressure = getFacingPressure(scenario.potState.numRaisers);
-  const posAdvantage = getPositionAdvantage(scenario.heroPosition);
-  const recommended = getRecommendedAction(
-    scenario,
-    pressure,
-    posAdvantage,
+  const context = scenarioContext(scenario);
+  const { pressure, positionAdvantage: posAdvantage } = context;
+  const recommended = recommendAction(
+    context,
     profile.category,
+    profile.pairRank,
   );
   const verdict = compareDecisions(decision, recommended);
 

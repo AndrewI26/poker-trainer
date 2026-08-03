@@ -36,7 +36,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CorrectBurst } from "@/components/features/trainer/CorrectBurst";
 import { MoveTimeline } from "@/components/features/trainer/MoveTimeline";
 import { PokerTable } from "@/components/features/trainer/PokerTable";
-import { ResultCard } from "@/components/features/trainer/ResultCard";
+import { PreflopResultSheet } from "@/components/features/trainer/PreflopResultSheet";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
@@ -58,7 +58,7 @@ export default function PreflopScreen() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [blindRevealedCount, setBlindRevealedCount] = useState(2);
   const [cardsTrigger, setCardsTrigger] = useState(0);
-  const [showResultModal, setShowResultModal] = useState(false);
+  const [showResultSheet, setShowResultSheet] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function stopAutoReveal() {
@@ -112,7 +112,7 @@ export default function PreflopScreen() {
     setHeroDecision(decision);
     setRevealedCount(scenario.actionsBefore.length + 1);
     setPhase("result");
-    setShowResultModal(true);
+    setShowResultSheet(true);
 
     if (user) {
       postPreflop({
@@ -134,7 +134,7 @@ export default function PreflopScreen() {
     setResult(null);
     setHeroDecision(null);
     setPhase("quiz");
-    setShowResultModal(false);
+    setShowResultSheet(false);
   }
 
   const heroAction: PreflopAction | null = heroDecision
@@ -225,11 +225,12 @@ export default function PreflopScreen() {
         />
 
         {phase === "result" && result && (
-          <ResultCard
-            visible={showResultModal}
-            onRequestClose={() => setShowResultModal(false)}
-            verdict={result.verdict}
-            explanation={result.explanation}
+          <PreflopResultSheet
+            visible={showResultSheet}
+            onClose={() => setShowResultSheet(false)}
+            onNextHand={nextHand}
+            scenario={scenario}
+            result={result}
             recommendedActionLabel={preflopActionLabel(
               result.recommendedAction,
             )}
@@ -298,7 +299,7 @@ export default function PreflopScreen() {
               <Button
                 label="Show feedback"
                 variant="secondary"
-                onPress={() => setShowResultModal(true)}
+                onPress={() => setShowResultSheet(true)}
               />
             </View>
             <View style={{ flex: 1 }}>
