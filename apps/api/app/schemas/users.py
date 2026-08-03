@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import (
@@ -35,6 +36,7 @@ class UserCreate(BaseModel):
     last_name: str
     password: str = Field(min_length=8, max_length=72)
     confirm_password: str = Field(min_length=8, max_length=72)
+    onboarding_submission: list[dict[str, Any]]
 
     @field_validator("password")
     @classmethod

@@ -33,6 +33,7 @@ def create_user(user: UserCreate, db: Db):
         first_name=user.first_name,
         last_name=user.last_name,
         hashed_password=hash_password(user.password),
+        onboarding_submission=user.onboarding_submission,
     )
     try:
         db.add(new_user)
