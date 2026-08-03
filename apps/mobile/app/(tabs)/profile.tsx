@@ -1,38 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
 import { useAuth } from "@/auth/AuthContext";
-import { PreflopRangeChart } from "@/components/features/PreflopRangeChart";
 import { ProfileHeader } from "@/components/features/ProfileHeader";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { Button, Card, Label } from "@/components/ui";
-import { useTheme } from "@/theme/ThemeContext";
-import theme from "@/theme/theme";
-
-const settings = [
-  {
-    icon: "notifications-outline",
-    label: "Notifications",
-    sub: "Daily reminders on",
-  },
-  {
-    icon: "shield-outline",
-    label: "Privacy",
-    sub: "Profile visible to all",
-  },
-  {
-    icon: "color-palette-outline",
-    label: "Appearance",
-    sub: "System default",
-  },
-  {
-    icon: "help-circle-outline",
-    label: "Help & Support",
-    sub: null,
-  },
-] as const;
+import { Button } from "@/components/ui";
 
 export default function ProfileScreen() {
-  const { t } = useTheme();
   const { user, logout } = useAuth();
 
   return (
@@ -40,78 +11,10 @@ export default function ProfileScreen() {
       <ProfileHeader
         name={user?.username ?? "Loading"}
         memberSince="2024"
-        rank="#4"
-        drillsCompleted={17}
-        winRate="68%"
+        role={user?.role ?? "free"}
       />
 
-      <Label>Preflop Chart</Label>
-      <Card>
-        <PreflopRangeChart position="BTN" tableSize={6} selectablePosition />
-      </Card>
-
-      <Label>Settings</Label>
-      <Card style={{ padding: 0, overflow: "hidden" }}>
-        {settings.map((item, i, arr) => (
-          <View
-            key={item.label}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: theme.spacing.sm,
-              paddingHorizontal: theme.spacing.md,
-              borderBottomWidth: i < arr.length - 1 ? 1 : 0,
-              borderBottomColor: t.assets.strokeInactive,
-              gap: theme.spacing.md,
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: theme.borderRadius.s,
-                backgroundColor: t.assets.bgDisabled,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name={item.icon} size={18} color={t.assets.subtext} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontFamily: theme.fontFamily.bold,
-                  fontSize: theme.fontSize.body,
-                  color: t.assets.text,
-                }}
-              >
-                {item.label}
-              </Text>
-              {item.sub && (
-                <Text
-                  style={{
-                    fontFamily: theme.fontFamily.regular,
-                    fontSize: theme.fontSize.xs,
-                    color: t.assets.subtext,
-                  }}
-                >
-                  {item.sub}
-                </Text>
-              )}
-            </View>
-            <Ionicons
-              name="chevron-forward-outline"
-              size={16}
-              color={t.assets.strokeInactive}
-            />
-          </View>
-        ))}
-      </Card>
-
-      <Label>Danger Zone</Label>
-      <Card>
-        <Button label="Log Out" variant="warning" onPress={logout} />
-      </Card>
+      <Button label="Log Out" variant="warning" onPress={logout} />
     </ScreenWrapper>
   );
 }

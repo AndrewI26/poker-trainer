@@ -38,6 +38,7 @@ export function Badge({
           fontSize: theme.fontSize.xs,
           fontFamily: theme.fontFamily.bold,
           color: c.text,
+          textTransform: "capitalize",
         }}
       >
         {label}

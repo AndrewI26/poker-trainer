@@ -69,20 +69,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="tools"
-        options={{
-          title: "Tools",
-          tabBarIcon: ({ color }) => tabIcon("construct-outline", color),
-        }}
-      />
-      <Tabs.Screen
-        name="leaderboard"
-        options={{
-          title: "Leaderboard",
-          tabBarIcon: ({ color }) => tabIcon("trophy-outline", color),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",

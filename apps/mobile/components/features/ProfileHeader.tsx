@@ -1,24 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { UserPublic } from "@poker-trainer/api-sdk";
 import { Text, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { Divider } from "@/components/ui/Divider";
-import { StatRow } from "@/components/ui/StatRow";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
 
 export function ProfileHeader({
   name,
   memberSince,
-  rank,
-  drillsCompleted,
-  winRate,
+  role,
 }: {
   name: string;
   memberSince: string;
-  rank: string;
-  drillsCompleted: number;
-  winRate: string;
+  role: UserPublic["role"];
 }) {
   const { t } = useTheme();
   return (
@@ -62,16 +57,8 @@ export function ProfileHeader({
             Member since {memberSince}
           </Text>
         </View>
-        <Badge label="Pro" variant="informative" />
+        <Badge label={role} variant="informative" />
       </View>
-      <Divider />
-      <StatRow label="Global Rank" value={rank} />
-      <StatRow
-        label="Drills Completed"
-        value={String(drillsCompleted)}
-        trend="up"
-      />
-      <StatRow label="Win Rate" value={winRate} trend="up" />
     </Card>
   );
 }
