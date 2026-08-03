@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import (
@@ -19,12 +20,23 @@ class Token(BaseModel):
     token_type: str
 
 
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 class UserCreate(BaseModel):
     username: EmailStr
     first_name: str
     last_name: str
     password: str = Field(min_length=8, max_length=72)
     confirm_password: str = Field(min_length=8, max_length=72)
+    onboarding_submission: list[dict[str, Any]]
 
     @field_validator("password")
     @classmethod
@@ -44,6 +56,11 @@ class UserCreate(BaseModel):
         if self.password != self.confirm_password:
             raise ValueError("Passwords do not match")
         return self
+
+
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class UserDelete(BaseModel):

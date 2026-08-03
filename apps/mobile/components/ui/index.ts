@@ -5,4 +5,5 @@ export { Divider } from "./Divider";
 export { IconCard } from "./IconCard";
 export { ListRow } from "./ListRow";
 export { StatRow } from "./StatRow";
+export { TextField } from "./TextField";
 export { Body, Heading, Label } from "./Typography";

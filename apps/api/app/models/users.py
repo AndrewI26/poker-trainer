@@ -1,10 +1,12 @@
 import enum
+from typing import Any
 from uuid import UUID, uuid4
 
 import email_validator
 from sqlalchemy import UUID as SQLAlchemyUUID
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import String
+from sqlalchemy import String, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.db import Base
@@ -53,6 +55,13 @@ class User(Base):
         nullable=False,
         default=UserRole.FREE,
         server_default=UserRole.FREE.value,
+    )
+
+    onboarding_submission: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default=text("'[]'::jsonb"),
     )
 
     @validates("username")

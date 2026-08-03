@@ -45,6 +45,7 @@
     "@biomejs/biome": "^2.0.0",
     "@hey-api/client-fetch": "^0.13.1",
     "@hey-api/openapi-ts": "^0.98.1",
+    "@types/node": "^26.1.2",
     "concurrently": "^9.1.2",
     "openapi-fetch": "^0.13.5",
     "openapi-typescript": "^7.6.1",

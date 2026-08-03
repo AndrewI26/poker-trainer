@@ -23,7 +23,7 @@ services:
       CB_ADMIN_NAME: ${CB_ADMIN_NAME}
       CB_ADMIN_PASSWORD: ${CB_ADMIN_PASSWORD}
     ports:
-      - "8978:8978"
+      - "${CB_PORT}:8978"
     volumes:
       - cloudbeaver_data:/opt/cloudbeaver/workspace
     restart: unless-stopped
