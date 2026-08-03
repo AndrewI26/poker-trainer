@@ -122,7 +122,10 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={{ gap: theme.spacing.sm }}>
-          <Button label="Get started" onPress={() => router.push("/signup")} />
+          <Button
+            label="Get started"
+            onPress={() => router.push("/onboarding")}
+          />
           <Button
             label="I already have an account"
             variant="secondary"

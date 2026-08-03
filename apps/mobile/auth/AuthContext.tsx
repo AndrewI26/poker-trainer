@@ -15,8 +15,8 @@ import {
   useEffect,
   useState,
 } from "react";
+import { clearStoredOnboarding } from "@/onboarding/storage";
 import {
-  endSession,
   loadSession,
   onSessionEnded,
   revokeSession,
@@ -58,10 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await saveSession(pair);
 
     const { data: me } = await getAuthMe();
-    if (!me) {
-      await endSession(false);
-      throw new Error("Could not load the current user");
-    }
+    if (!me) throw new Error("Could not load the current user");
 
     setUser(me);
     setIsAuthenticated(true);
@@ -70,24 +67,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function restore() {
       try {
-        const hasRefreshToken = await loadSession();
-        if (!hasRefreshToken) return;
-
-        const { data: me } = await getAuthMe();
-        if (me) {
-          setUser(me);
-          setIsAuthenticated(true);
-        } else {
-          await endSession(false);
+        if (await loadSession()) {
+          const { data: me } = await getAuthMe();
+          if (me) {
+            setUser(me);
+            setIsAuthenticated(true);
+          }
         }
-      } catch {
-        await endSession(false);
       } finally {
         setIsRestoring(false);
       }
     }
 
-    restore();
+    restore().catch(() => undefined);
   }, []);
 
   const login = useCallback(
@@ -109,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw new Error(describeSignupError(error));
 
+      await clearStoredOnboarding();
       await login(input.username, input.password);
     },
     [login],

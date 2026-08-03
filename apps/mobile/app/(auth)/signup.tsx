@@ -5,6 +5,7 @@ import { AuthScreen } from "@/components/features/auth/AuthScreen";
 import { PasswordRequirements } from "@/components/features/auth/PasswordRequirements";
 import { TextField } from "@/components/ui";
 import { isEmailValid, isPasswordValid } from "@/lib/validation";
+import { getOnboardingSubmissions } from "@/onboarding/storage";
 import theme from "@/theme/theme";
 
 export default function SignupScreen() {
@@ -47,6 +48,7 @@ export default function SignupScreen() {
         last_name: lastName.trim(),
         password,
         confirm_password: confirmPassword,
+        onboarding_submission: await getOnboardingSubmissions(),
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
