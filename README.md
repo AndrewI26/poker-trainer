@@ -1,5 +1,9 @@
 # Poker Trainer
 
+https://github.com/user-attachments/assets/cf279781-7bb4-4587-84ba-d1e4b1d296b0
+
+https://github.com/user-attachments/assets/b0fd4da8-4d52-4e25-8c89-6e9890f3ae7f
+
 ## Prerequisites
 
 - **[Bun](https://bun.sh)** — installs dependencies and runs repo scripts (`bun install`, `bun run dev`, …).
