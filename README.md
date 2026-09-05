@@ -4,6 +4,26 @@ https://github.com/user-attachments/assets/cf279781-7bb4-4587-84ba-d1e4b1d296b0
 
 https://github.com/user-attachments/assets/b0fd4da8-4d52-4e25-8c89-6e9890f3ae7f
 
+## Demo
+
+Both trainers deal a fresh spot, take your action, and grade it instantly against the preflop charts and postflop heuristics in `packages/poker-engine`.
+
+### Preflop trainer
+
+| Decision | Feedback |
+| --- | --- |
+| <img src="docs/screenshots/preflop.png" width="320" alt="Preflop trainer — hero on the button facing a 3BB open" /> | <img src="docs/screenshots/preflop-feedback.png" width="320" alt="Preflop feedback — full range chart for BTN facing a raise" /> |
+
+Every hand shows the table, stacks and action timeline. After you act you get the verdict, the best play, and the full 13x13 range chart for that spot with your hand highlighted.
+
+### Postflop trainer
+
+| Decision | Feedback |
+| --- | --- |
+| <img src="docs/screenshots/postflop.png" width="320" alt="Postflop trainer — hero in the cutoff on a monotone flop" /> | <img src="docs/screenshots/postflop-feedback.png" width="320" alt="Postflop feedback explaining the optimal line" /> |
+
+Flops are generated with real board textures. Feedback names the texture, your hand strength, and the optimal line.
+
 ## Prerequisites
 
 - **[Bun](https://bun.sh)** — installs dependencies and runs repo scripts (`bun install`, `bun run dev`, …).
@@ -22,6 +42,36 @@ https://github.com/user-attachments/assets/b0fd4da8-4d52-4e25-8c89-6e9890f3ae7f
 uv run alembic revision --autogenerate -m "describe change"
 uv run alembic upgrade head
 ```
+
+## Project structure
+
+Bun workspaces monorepo — `apps/*` and `packages/*`.
+
+```
+apps/
+  api/       FastAPI + SQLAlchemy + Alembic, PostgreSQL. Routers mounted from app/routers/
+  mobile/    Expo (React Native) + Expo Router — where the trainers live
+  web/       Vite + React + React Router v7 (landing page)
+packages/
+  api-sdk/       TypeScript client generated from the OpenAPI spec (bun run codegen)
+  poker-engine/  Shared, framework-free poker logic: deck, evaluator, ranges, scenarios
+docs/
+  screenshots/   Images used by this README
+```
+
+| Path | What it holds |
+| --- | --- |
+| `apps/api/app/models/` | SQLAlchemy models — the source of truth for the schema |
+| `apps/api/app/schemas/` | Pydantic request/response schemas |
+| `apps/api/app/routers/` | FastAPI routers (`auth`, `users`, `preflop`, `postflop`) |
+| `apps/api/alembic/versions/` | Migrations |
+| `apps/mobile/app/` | File-based routes: `(auth)`, `(tabs)`, `train/preflop`, `train/postflop` |
+| `apps/mobile/components/` | `ui/` primitives and `features/` feature components |
+| `apps/mobile/theme/` | `ThemeContext` — components take a `Theme` via the `t` prop |
+| `apps/web/src/pages/` | Web pages, wired up in `src/routes.tsx` |
+| `packages/poker-engine/src/` | Hand evaluation, range lookup and scenario generation |
+
+Data flows one way: SQLAlchemy models to Alembic migrations to FastAPI routes to the OpenAPI spec, then `bun run codegen` regenerates `packages/api-sdk/src/generated/`, which both the web and mobile apps consume via `@poker-trainer/api-sdk`. Nothing under `src/generated/` is hand-edited.
 
 ## Local endpoints
 
