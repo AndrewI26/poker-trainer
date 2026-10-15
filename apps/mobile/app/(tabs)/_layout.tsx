@@ -21,7 +21,9 @@ function Header({ title }: { title: string }) {
         backgroundColor: t.assets.bgPage,
         paddingTop: insets.top + theme.spacing.sm,
         paddingBottom: theme.spacing.sm,
+        minHeight: insets.top + theme.spacing.sm * 2 + 24,
         alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <Text
@@ -29,6 +31,8 @@ function Header({ title }: { title: string }) {
           fontFamily: theme.fontFamily.bold,
           fontSize: theme.fontSize.body,
           color: t.assets.text,
+          includeFontPadding: false,
+          marginTop: 4,
         }}
       >
         {title}

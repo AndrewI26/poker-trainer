@@ -8,11 +8,9 @@ import theme from "@/theme/theme";
 
 export function ProfileHeader({
   name,
-  memberSince,
   role,
 }: {
   name: string;
-  memberSince: string;
   role: UserPublic["role"];
 }) {
   const { t } = useTheme();
@@ -46,15 +44,6 @@ export function ProfileHeader({
             }}
           >
             {name}
-          </Text>
-          <Text
-            style={{
-              fontFamily: theme.fontFamily.regular,
-              fontSize: theme.fontSize.sm,
-              color: t.assets.subtext,
-            }}
-          >
-            Member since {memberSince}
           </Text>
         </View>
         <Badge label={role} variant="informative" />
