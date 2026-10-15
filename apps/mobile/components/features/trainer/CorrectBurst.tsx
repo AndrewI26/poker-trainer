@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, useWindowDimensions, View } from "react-native";
+import { Animated, View } from "react-native";
+import { useAppDimensions } from "@/lib/layout";
 
 const BURST_COLORS = ["#4ade80", "#facc15", "#60a5fa", "#f472b6", "#a78bfa"];
 const BURST_COUNT = 14;
@@ -85,7 +86,7 @@ function BurstParticle({
 }
 
 export function CorrectBurst({ active }: { active: boolean }) {
-  const { width } = useWindowDimensions();
+  const { width } = useAppDimensions();
   const triggerCount = useRef(0);
   const configs = useRef<ParticleConfig[]>(
     Array.from({ length: BURST_COUNT }, (_, i) => ({

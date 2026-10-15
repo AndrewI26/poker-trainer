@@ -13,7 +13,8 @@ import {
 } from "@poker-trainer/poker-engine";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef } from "react";
-import { Animated, Text, useWindowDimensions, View } from "react-native";
+import { Animated, Text, View } from "react-native";
+import { useAppDimensions } from "@/lib/layout";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
 
@@ -475,7 +476,7 @@ type PostflopTableProps = {
 };
 
 export function PokerTable(props: PreflopTableProps | PostflopTableProps) {
-  const { width } = useWindowDimensions();
+  const { width } = useAppDimensions();
 
   const circleD = width * CIRCLE_SCALE;
   const circleR = circleD / 2;
