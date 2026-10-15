@@ -10,7 +10,6 @@ export default function ProfileScreen() {
     <ScreenWrapper>
       <ProfileHeader
         name={user?.username ?? "Loading"}
-        memberSince="2024"
         role={user?.role ?? "free"}
       />
 
