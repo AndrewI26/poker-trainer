@@ -47,7 +47,7 @@ uv run alembic upgrade head
 
 `docker-compose.yml` runs Postgres, the API, and the Expo web build of the mobile app. Both the API and web app bind to `127.0.0.1` and expect a reverse proxy in front, with the API served under `/api` on the same domain.
 
-1. **Create the env file:** `cp .env.production.example .env` and fill in the secrets
+1. **Create the env file:** `cp .env.prod.example .env` and fill in the secrets
 2. **Build and start:** `docker compose up -d --build`
 3. **Point the reverse proxy at it**, e.g. with Caddy:
 
