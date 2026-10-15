@@ -1,6 +1,7 @@
 import {
   getAuthMe,
   type PostUsersError,
+  postAuthDemo,
   postAuthToken,
   postUsers,
   type TokenPair,
@@ -28,11 +29,14 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isRestoring: boolean;
   login: (username: string, password: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
   signup: (input: UserCreate) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const RATE_LIMITED_MESSAGE = "Too many attempts, please try again later";
 
 function describeSignupError(error: PostUsersError) {
   const message = error.detail?.[0]?.msg;
@@ -84,10 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (username: string, password: string) => {
-      const { data, error } = await postAuthToken({
+      const { data, error, response } = await postAuthToken({
         body: { username, password },
       });
 
+      if (response?.status === 429) throw new Error(RATE_LIMITED_MESSAGE);
       if (error || !data) throw new Error("Incorrect username or password");
 
       await applySession(data);
@@ -95,10 +100,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession],
   );
 
+  const demoLogin = useCallback(async () => {
+    const { data, error, response } = await postAuthDemo();
+
+    if (response?.status === 429) throw new Error(RATE_LIMITED_MESSAGE);
+    if (error || !data) throw new Error("Could not start the demo");
+
+    await applySession(data);
+  }, [applySession]);
+
   const signup = useCallback(
     async (input: UserCreate) => {
-      const { error } = await postUsers({ body: input });
+      const { error, response } = await postUsers({ body: input });
 
+      if (response?.status === 429) throw new Error(RATE_LIMITED_MESSAGE);
       if (error) throw new Error(describeSignupError(error));
 
       await clearStoredOnboarding();
@@ -115,7 +130,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, isRestoring, login, signup, logout }}
+      value={{
+        user,
+        isAuthenticated,
+        isRestoring,
+        login,
+        demoLogin,
+        signup,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

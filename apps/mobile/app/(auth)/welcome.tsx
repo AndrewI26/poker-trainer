@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Platform, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/auth/AuthContext";
 import { Button } from "@/components/ui";
 import { useTheme } from "@/theme/ThemeContext";
 import theme from "@/theme/theme";
@@ -27,7 +29,21 @@ const HIGHLIGHTS = [
 export default function WelcomeScreen() {
   const { t } = useTheme();
   const router = useRouter();
+  const { demoLogin } = useAuth();
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
   const accent = t.accent.icons.purpleContain;
+
+  async function startDemo() {
+    setDemoLoading(true);
+    setDemoError(null);
+    try {
+      await demoLogin();
+    } catch (e) {
+      setDemoError(e instanceof Error ? e.message : "Could not start the demo");
+      setDemoLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: t.assets.bgPage }}>
@@ -131,6 +147,26 @@ export default function WelcomeScreen() {
             variant="secondary"
             onPress={() => router.push("/login")}
           />
+          {Platform.OS === "web" && (
+            <Button
+              label={demoLoading ? "Starting demo…" : "Try the demo"}
+              variant="tertiary"
+              onPress={startDemo}
+              disabled={demoLoading}
+            />
+          )}
+          {demoError && (
+            <Text
+              style={{
+                fontFamily: theme.fontFamily.regular,
+                fontSize: theme.fontSize.sm,
+                color: t.sentiment.negative,
+                textAlign: "center",
+              }}
+            >
+              {demoError}
+            </Text>
+          )}
         </View>
       </View>
     </SafeAreaView>
