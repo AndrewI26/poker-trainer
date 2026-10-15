@@ -1,8 +1,11 @@
 import { client } from "@poker-trainer/api-sdk";
+import { Platform } from "react-native";
 import { getAccessToken, refreshSession } from "@/auth/session";
 
 client.setConfig({
-  baseUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8000",
+  baseUrl:
+    process.env.EXPO_PUBLIC_API_URL ??
+    (Platform.OS === "web" ? "" : "http://127.0.0.1:8000"),
 });
 
 const UNAUTHENTICATED_PATHS = ["/auth/token", "/auth/refresh", "/auth/logout"];
