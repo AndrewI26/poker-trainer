@@ -9,6 +9,7 @@ from app.dependencies.auth import (
     verify_password,
 )
 from app.dependencies.db import Db
+from app.dependencies.rate_limit import signup_rate_limit
 from app.models.users import User, UserRole
 from app.schemas.users import UserCreate, UserDelete, UserPublic, UserUpdate
 
@@ -26,7 +27,12 @@ def list_users(
     return db.execute(select(User)).scalars().all()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserPublic,
+    dependencies=[Depends(signup_rate_limit)],
+)
 def create_user(user: UserCreate, db: Db):
     new_user = User(
         username=user.username,

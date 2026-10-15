@@ -1,3 +1,4 @@
+import secrets
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -8,6 +9,7 @@ from app.dependencies.auth import (
     CurrentUser,
     create_access_token,
     get_user,
+    hash_password,
     issue_refresh_token,
     revoke_refresh_token,
     revoke_user_refresh_tokens,
@@ -15,12 +17,16 @@ from app.dependencies.auth import (
     verify_password,
 )
 from app.dependencies.db import Db
+from app.dependencies.rate_limit import demo_rate_limit, login_rate_limit
+from app.models.users import User
 from app.schemas.users import RefreshTokenRequest, TokenPair, UserPublic
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/token", response_model=TokenPair)
+@router.post(
+    "/token", response_model=TokenPair, dependencies=[Depends(login_rate_limit)]
+)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Db,
@@ -33,6 +39,27 @@ async def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    refresh_token, _ = issue_refresh_token(db, user.id, settings)
+    db.commit()
+
+    return {
+        "access_token": create_access_token(user.username, settings),
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+@router.post("/demo", response_model=TokenPair, dependencies=[Depends(demo_rate_limit)])
+async def demo_login(db: Db, settings: SettingsDep):
+    user = User(
+        username=f"demo-{secrets.token_hex(8)}@example.com",
+        first_name="Demo",
+        last_name="Player",
+        hashed_password=hash_password(secrets.token_urlsafe(32)),
+    )
+    db.add(user)
+    db.flush()
 
     refresh_token, _ = issue_refresh_token(db, user.id, settings)
     db.commit()
