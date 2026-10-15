@@ -43,6 +43,27 @@ uv run alembic revision --autogenerate -m "describe change"
 uv run alembic upgrade head
 ```
 
+## Production deployment
+
+`docker-compose.yml` runs Postgres, the API, and the Expo web build of the mobile app. Both the API and web app bind to `127.0.0.1` and expect a reverse proxy in front, with the API served under `/api` on the same domain.
+
+1. **Create the env file:** `cp .env.prod.example .env` and fill in the secrets
+2. **Build and start:** `docker compose up -d --build`
+3. **Point the reverse proxy at it**, e.g. with Caddy:
+
+```
+poker-trainer.example.com {
+	handle /api/* {
+		reverse_proxy localhost:8000
+	}
+	handle {
+		reverse_proxy localhost:3000
+	}
+}
+```
+
+Migrations run automatically when the API container starts.
+
 ## Project structure
 
 Bun workspaces monorepo — `apps/*` and `packages/*`.

@@ -75,7 +75,7 @@ SQLAlchemy models → Alembic migrations → FastAPI routes → OpenAPI spec →
 
 ## Environment
 
-Copy `.env.example` to `.env`. Variables use `dotenv-expand` interpolation — only `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, and `API_PORT` need to be set; all other vars derive from them.
+For local dev, copy `.env.dev.example` to `.env` (production uses `.env.prod.example`). Variables use `dotenv-expand` interpolation — only `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, and `API_PORT` need to be set; all other vars derive from them.
 
 ## After every code change
 

@@ -1,0 +1,11 @@
+**/node_modules
+**/.venv
+**/__pycache__
+**/dist
+**/.expo
+**/*.tsbuildinfo
+.git
+.claude
+.env
+.env.*
+packages/api-sdk/src/generated

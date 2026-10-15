@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
@@ -22,7 +22,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title=settings.api_title, debug=settings.env == "development", lifespan=lifespan
+    title=settings.api_title,
+    debug=settings.env == "development",
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url=None,
+    openapi_url="/api/openapi.json",
 )
 
 app.add_middleware(
@@ -33,12 +38,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(preflop.router)
-app.include_router(postflop.router)
+api_router = APIRouter(prefix="/api")
+api_router.include_router(auth.router)
+api_router.include_router(users.router)
+api_router.include_router(preflop.router)
+api_router.include_router(postflop.router)
 
 
-@app.get("/health", tags=["health"])
+@api_router.get("/health", tags=["health"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+app.include_router(api_router)
